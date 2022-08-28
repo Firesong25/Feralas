@@ -1,0 +1,494 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://eu.api.blizzard.com/data/wow/connected-realm/1305/auctions?namespace=dynamic-eu"
+    }
+  },
+  "connected_realm": {
+    "href": "https://eu.api.blizzard.com/data/wow/connected-realm/1305?namespace=dynamic-eu"
+  },
+  "auctions": [
+    {
+      "id": 3356264,
+      "item": {
+        "id": 190334,
+        "context": 92,
+        "bonus_lists": [
+          8759,
+          6652,
+          7994,
+          8132,
+          8138,
+          1524,
+          6646
+        ],
+        "modifiers": [
+          {
+            "type": 28,
+            "value": 2422
+          }
+        ]
+      },
+      "buyout": 9000000000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 3228467,
+      "item": {
+        "id": 190631,
+        "context": 92,
+        "bonus_lists": [
+          8132,
+          8117,
+          8759,
+          42,
+          1550,
+          6646
+        ],
+        "modifiers": [
+          {
+            "type": 28,
+            "value": 2422
+          }
+        ]
+      },
+      "buyout": 49999990000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32250922,
+      "item": {
+        "id": 121104,
+        "bonus_lists": [
+          6654,
+          1808,
+          1691
+        ],
+        "modifiers": [
+          {
+            "type": 9,
+            "value": 25
+          },
+          {
+            "type": 28,
+            "value": 333
+          }
+        ]
+      },
+      "buyout": 149990000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32250938,
+      "item": {
+        "id": 159537,
+        "bonus_lists": [
+          6655,
+          1691
+        ],
+        "modifiers": [
+          {
+            "type": 9,
+            "value": 23
+          },
+          {
+            "type": 28,
+            "value": 805
+          }
+        ]
+      },
+      "buyout": 19990000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32250949,
+      "item": {
+        "id": 121077,
+        "bonus_lists": [
+          6654,
+          1808,
+          1688
+        ],
+        "modifiers": [
+          {
+            "type": 9,
+            "value": 25
+          },
+          {
+            "type": 28,
+            "value": 333
+          }
+        ]
+      },
+      "buyout": 149990000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+
+    {
+      "id": 41124482,
+      "item": {
+        "id": 172259,
+        "context": 13,
+        "bonus_lists": [
+          6893,
+          7881,
+          7960,
+          6650,
+          6647
+        ],
+        "modifiers": [
+          {
+            "type": 9,
+            "value": 60
+          },
+          {
+            "type": 28,
+            "value": 391
+          },
+          {
+            "type": 29,
+            "value": 32
+          },
+          {
+            "type": 30,
+            "value": 49
+          }
+        ]
+      },
+      "buyout": 75317500,
+      "quantity": 1,
+      "time_left": "LONG"
+    },
+    {
+      "id": 41125255,
+      "item": {
+        "id": 173145,
+        "context": 13,
+        "bonus_lists": [
+          7880
+        ],
+        "modifiers": [
+          {
+            "type": 9,
+            "value": 60
+          },
+          {
+            "type": 28,
+            "value": 2142
+          },
+          {
+            "type": 29,
+            "value": 40
+          }
+        ]
+      },
+      "buyout": 4996300,
+      "quantity": 1,
+      "time_left": "LONG"
+    },
+    {
+      "id": 41125275,
+      "item": {
+        "id": 173132,
+        "context": 13,
+        "bonus_lists": [
+          7880
+        ],
+        "modifiers": [
+          {
+            "type": 9,
+            "value": 60
+          },
+          {
+            "type": 28,
+            "value": 2142
+          },
+          {
+            "type": 29,
+            "value": 40
+          }
+        ]
+      },
+      "buyout": 4990900,
+      "quantity": 1,
+      "time_left": "LONG"
+    },
+    {
+      "id": 41125292,
+      "item": {
+        "id": 173132,
+        "context": 13,
+        "bonus_lists": [
+          7880
+        ],
+        "modifiers": [
+          {
+            "type": 9,
+            "value": 60
+          },
+          {
+            "type": 28,
+            "value": 2142
+          },
+          {
+            "type": 29,
+            "value": 36
+          }
+        ]
+      },
+      "buyout": 4990900,
+      "quantity": 1,
+      "time_left": "LONG"
+    },
+    {
+      "id": 32261146,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 99916
+          }
+        ],
+        "pet_breed_id": 13,
+        "pet_level": 1,
+        "pet_quality_id": 2,
+        "pet_species_id": 2959
+      },
+      "buyout": 289900,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261210,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 2955
+          }
+        ],
+        "pet_breed_id": 11,
+        "pet_level": 1,
+        "pet_quality_id": 2,
+        "pet_species_id": 74
+      },
+      "buyout": 278500,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261481,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 32790
+          }
+        ],
+        "pet_breed_id": 13,
+        "pet_level": 1,
+        "pet_quality_id": 3,
+        "pet_species_id": 629
+      },
+      "buyout": 12550000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261488,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 32790
+          }
+        ],
+        "pet_breed_id": 3,
+        "pet_level": 1,
+        "pet_quality_id": 3,
+        "pet_species_id": 629
+      },
+      "buyout": 12550000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261566,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 57825
+          }
+        ],
+        "pet_breed_id": 22,
+        "pet_level": 1,
+        "pet_quality_id": 3,
+        "pet_species_id": 1434
+      },
+      "buyout": 8859800,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261627,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 57970
+          }
+        ],
+        "pet_breed_id": 16,
+        "pet_level": 1,
+        "pet_quality_id": 3,
+        "pet_species_id": 1442
+      },
+      "buyout": 9990000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261708,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 54511
+          }
+        ],
+        "pet_breed_id": 16,
+        "pet_level": 1,
+        "pet_quality_id": 3,
+        "pet_species_id": 1394
+      },
+      "buyout": 2213500,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261710,
+      "item": {
+        "id": 8499,
+        "modifiers": [
+          {
+            "type": 28,
+            "value": 373
+          }
+        ]
+      },
+      "buyout": 139000000,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32261941,
+      "item": {
+        "id": 82800,
+        "modifiers": [
+          {
+            "type": 6,
+            "value": 80852
+          }
+        ],
+        "pet_breed_id": 10,
+        "pet_level": 1,
+        "pet_quality_id": 3,
+        "pet_species_id": 2420
+      },
+      "buyout": 111119700,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32263453,
+      "item": {
+        "id": 6661,
+        "modifiers": [
+          {
+            "type": 28,
+            "value": 1801
+          }
+        ]
+      },
+      "buyout": 49999900,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32263460,
+      "item": {
+        "id": 6661,
+        "modifiers": [
+          {
+            "type": 28,
+            "value": 3
+          }
+        ]
+      },
+      "buyout": 49999900,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32263471,
+      "item": {
+        "id": 6661,
+        "modifiers": [
+          {
+            "type": 28,
+            "value": 3
+          }
+        ]
+      },
+      "buyout": 49999900,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32263478,
+      "item": { "id": 6661 },
+      "buyout": 49999900,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 32263489,
+      "item": { "id": 6661 },
+      "buyout": 49999900,
+      "quantity": 1,
+      "time_left": "SHORT"
+    },
+    {
+      "id": 41125377,
+      "item": {
+        "id": 18655,
+        "context": 1,
+        "modifiers": [
+          {
+            "type": 28,
+            "value": 278
+          }
+        ]
+      },
+      "buyout": 150000000,
+      "quantity": 1,
+      "time_left": "VERY_LONG"
+    }
+  ],
+  "commodities": {
+    "href": "https://eu.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-eu"
+  }
+}

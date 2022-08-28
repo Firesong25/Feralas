@@ -1,0 +1,45 @@
+{
+  "_links": {
+    "self": {
+      "href": "https://us.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-us"
+    }
+  },
+  "auctions": [
+    {
+      "id": 28345670,
+      "item": {
+        "id": 172094
+      },
+      "quantity": 8097,
+      "unit_price": 900,
+      "time_left": "VERY_LONG"
+    },
+    {
+      "id": 25326425,
+      "item": {
+        "id": 13926
+      },
+      "quantity": 1,
+      "unit_price": 1749900,
+      "time_left": "LONG"
+    },
+    {
+      "id": 31791377,
+      "item": {
+        "id": 72238
+      },
+      "quantity": 13,
+      "unit_price": 200000,
+      "time_left": "VERY_LONG"
+    },
+    {
+      "id": 31791382,
+      "item": {
+        "id": 62781
+      },
+      "quantity": 2,
+      "unit_price": 9600,
+      "time_left": "LONG"
+    }
+  ]
+}
