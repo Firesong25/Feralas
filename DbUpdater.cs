@@ -40,7 +40,7 @@ namespace Feralas
 
             foreach (WowAuction listing in auctions.LiveAuctions)
             {
-                trial = storedAuctions.FirstOrDefault(l => l.AuctionId == listing.AuctionId);
+                trial = storedAuctions.FirstOrDefault(l => l.ConnectedRealmId == listing.ConnectedRealmId && l.AuctionId == listing.AuctionId);
                 if (trial == null)
                 {
                     listing.FirstSeenTime = DateTime.Now - new TimeSpan(0, 5, 0);

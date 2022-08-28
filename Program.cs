@@ -25,7 +25,21 @@ namespace Feralas
             //context.SaveChanges();
 
             RealmRunner anvilmarUs = new("anvilmar", "dynamic-us", context);
-            await anvilmarUs.Run();
+            try
+            {
+                await anvilmarUs.Run();
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log("___________________________________");
+                LogMaker.Log(ex.Message);
+                LogMaker.Log("___________________________________");
+                LogMaker.Log(ex.StackTrace);
+                LogMaker.Log("___________________________________");
+                if (ex.InnerException != null)
+                    LogMaker.Log($"{ex.InnerException}");
+            }
+            
 
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");
