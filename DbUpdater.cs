@@ -70,7 +70,16 @@ namespace Feralas
             LogMaker.Log($"We have {auctionsToAdd.Count} to actually add to database.");
             context.AddRange(auctionsToAdd);
             LogMaker.Log($"We have {auctionsToUpdate.Count} to update in the database.");
-            context.UpdateRange(auctionsToUpdate.Where(l => l.PrimaryKey > 0));
+            try
+            {
+                context.UpdateRange(auctionsToUpdate.Where(l => l.PrimaryKey > 0));
+            }
+            catch
+            {
+                LogMaker.Log("___________________________________");
+                LogMaker.Log($"The instance of entity type 'WowAuction' cannot be tracked because another instance with the same key value for {{'PrimaryKey'}} is already being tracked. ");
+                LogMaker.Log("___________________________________");
+            }
             context.SaveChanges();
 
         }
