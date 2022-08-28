@@ -15,10 +15,6 @@ namespace Feralas
 
             LogMaker.Log($"Starting process.");
             await Configurations.Init();
-            
-
-            
-
             LocalContext context = new();
 
             //To fix mistakes
@@ -28,8 +24,11 @@ namespace Feralas
             //context.WowAuctions.RemoveRange(deleteMeToo);
             //context.SaveChanges();
 
+            RealmRunner anvilmarUs = new("anvilmar", "dynamic-us", context);
+            await anvilmarUs.Run();
 
-            
+
+            LogMaker.Log($"If you see this, something has gone terribly wrong.");
 
         }
     }
