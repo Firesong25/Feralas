@@ -20,7 +20,7 @@ namespace Feralas
                 // Create a file to write to.
                 using (StreamWriter sw = File.CreateText(path))
                 {
-                    sw.WriteLine("<title>JSON Reader - Log</title>");
+                    sw.WriteLine("<title>Feralas - Log</title>");
                     sw.WriteLine("Log<br>");
                 }
             }

@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <None Update="Configurations.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="json\anvilmar_auctions.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
