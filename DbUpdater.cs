@@ -31,7 +31,7 @@ namespace Feralas
 
             DateTime cutOffTime = DateTime.Now - new TimeSpan(50, 50, 50);
             List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
-                l.FirstSeenTime > cutOffTime).AsNoTracking().ToList();
+                l.FirstSeenTime > cutOffTime).ToList();
             List<WowAuction> auctionsToAdd = new();
             List<WowAuction> auctionsToUpdate = new();
             WowAuction trial = new();
@@ -86,7 +86,7 @@ namespace Feralas
 
         public async Task DbItemUpdaterAsync(LocalContext context, Listings auctions)
         {
-            List<WowItem> storedItems = context.WowItems.AsNoTracking().ToList();
+            List<WowItem> storedItems = context.WowItems.ToList();
             List<WowItem> itemsToAdd = new();
             WowItem trialItem = new();
 
@@ -113,7 +113,7 @@ namespace Feralas
 
             DateTime cutOffTime = DateTime.Now - new TimeSpan(50, 50, 50);
             List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
-                l.FirstSeenTime > cutOffTime).AsNoTracking().ToList();
+                l.FirstSeenTime > cutOffTime).ToList();
             List<WowAuction> auctionsToAdd = new();
             List<WowAuction> auctionsToUpdate = new();
             WowAuction trial = new();
@@ -159,7 +159,7 @@ namespace Feralas
 
         public async Task OldDbItemUpdaterAsync(LocalContext context, Listings auctions)
         {
-            List<WowItem> storedItems = context.WowItems.AsNoTracking().ToList();
+            List<WowItem> storedItems = context.WowItems.ToList();
             List<WowItem> itemsToAdd = new();
             WowItem trialItem = new();
 
