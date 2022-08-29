@@ -30,8 +30,11 @@ namespace Feralas
             try
             {
                 anvilmarUs.Run();
-                await Task.Delay(new TimeSpan(0, 1, 0));
+                await Task.Delay(new TimeSpan(0, 10, 0));
                 await kazzakEu.Run();
+                await Task.Delay(new TimeSpan(0, 10, 0));
+                await IllidanUs.Run();
+                await Task.Delay(new TimeSpan(0, 10, 0));
             }
             catch (Exception ex)
             {
