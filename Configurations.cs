@@ -21,7 +21,7 @@ namespace Feralas
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
             if (isLinux)
             {
-                LogMaker.Log($"OS is GNU/Linux go home so look home the for config data.");
+                LogMaker.Log($"OS is GNU/Linux go home so look home for config data.");
                 configurationFile = "/home/patrick/Configurations.txt";
             }
 

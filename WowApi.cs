@@ -12,12 +12,15 @@ namespace Feralas
         {
             string auctionsJson = string.Empty;
 
-            if (AccessToken == string.Empty || TokenTimer.ElapsedMilliseconds / 1000 > 3600 || !TokenTimer.IsRunning)
-            {
-                TokenTimer.Start();
-                Token tok = await GetElibilityToken();
-                AccessToken = tok.AccessToken.ToString();
-            }
+            //if (AccessToken == string.Empty || TokenTimer.ElapsedMilliseconds / 1000 > 3600 || !TokenTimer.IsRunning)
+            //{
+            //    TokenTimer.Start();
+            //    Token tok = await GetElibilityToken();
+            //    AccessToken = tok.AccessToken.ToString();
+            //}
+
+            Token tok = await GetElibilityToken();
+            AccessToken = tok.AccessToken.ToString();
 
             int connectedRealmId = 0;
 
@@ -65,7 +68,7 @@ namespace Feralas
         public static async Task<int> GetConnectedRealmId(string wowNamespace, string realmName)
         {
             await Task.Delay(1);
-            string url = $"https://us.api.blizzard.com/data/wow/realm/{realmName}?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
+            string url = $"https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={realmName}&access_token={AccessToken}";
 
             if (wowNamespace.Contains("-eu"))
                 url = $"https://eu.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-eu&realms.name.en_US={realmName}&access_token={AccessToken}";

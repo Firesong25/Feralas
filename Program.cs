@@ -29,9 +29,9 @@ namespace Feralas
             RealmRunner kazzakEu = new("Kazzak", "dynamic-eu", context);
             try
             {
-                kazzakEu.Run();
-                await Task.Delay(new TimeSpan(0, 10, 0));
-                await anvilmarUs.Run();
+                anvilmarUs.Run();
+                await Task.Delay(new TimeSpan(0, 1, 0));
+                await kazzakEu.Run();
             }
             catch (Exception ex)
             {
