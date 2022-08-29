@@ -48,7 +48,7 @@ namespace Feralas
         //    => options.UseSqlite($"Data Source={DbPath}");
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite($"Data Source=blizzard_data.db");
+            optionsBuilder.UseSqlite($"Data Source=../blizzard_data.db");
         }
 
     }
