@@ -19,10 +19,13 @@
         {
             while (true)
             {
-                string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace);
+                string auctionsJson = await WowApi.GetRealmAuctions(realmName.ToLower(), wowNamespace);
                 LogMaker.Log($"The realm data for {realmName} using {wowNamespace} namespace is downloaded.");
                 DbUpdater db = new();
-                await db.DoUpdatesAsync(context, auctionsJson);
+                string tag = $"{realmName} US";
+                if (wowNamespace.Contains("-eu"))
+                    tag = $"{realmName} EU";
+                await db.DoUpdatesAsync(context, auctionsJson, tag);
 
                 await Task.Delay(pollInterval);
             }

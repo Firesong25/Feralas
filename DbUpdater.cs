@@ -9,7 +9,7 @@ namespace Feralas
 {
     public class DbUpdater
     {
-        public async Task DoUpdatesAsync(LocalContext context, string json)
+        public async Task DoUpdatesAsync(LocalContext context, string json, string tag)
         {
 
             LogMaker.Log($"{context.WowItems.Count()} items already stored.");
@@ -20,23 +20,25 @@ namespace Feralas
             await auctions.GetLiveAuctionsAsync();
 
 
-            await DbItemUpdaterAsync(context, auctions);
+            await DbItemUpdaterAsync(context, auctions, tag);
             LogMaker.Log($"{context.WowItems.Count()} items are now stored.");
-            await DbAuctionsUpdaterAsync(context, auctions);
+            await DbAuctionsUpdaterAsync(context, auctions, tag);
             LogMaker.Log($"{context.WowAuctions.Count()} auctions are now stored.");
         }
 
-        public async Task DbAuctionsUpdaterAsync(LocalContext context, Listings auctions)
+        public async Task DbAuctionsUpdaterAsync(LocalContext context, Listings auctions, string tag)
         {
+            int connectedRealmId = auctions.LiveAuctions.FirstOrDefault().ConnectedRealmId;
 
             DateTime cutOffTime = DateTime.Now - new TimeSpan(50, 50, 50);
             List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
+                l.ConnectedRealmId == connectedRealmId &&
                 l.FirstSeenTime > cutOffTime).ToList();
             List<WowAuction> auctionsToAdd = new();
             List<WowAuction> auctionsToUpdate = new();
             WowAuction trial = new();
 
-            LogMaker.Log($"We have {auctions.LiveAuctions.Count} to consider adding to database.");
+            LogMaker.Log($"We have {auctions.LiveAuctions.Count} to consider adding to database for {tag}.");
 
             foreach (WowAuction listing in auctions.LiveAuctions)
             {
@@ -67,30 +69,36 @@ namespace Feralas
                 trial = new();
             }
 
-            LogMaker.Log($"We have {auctionsToAdd.Count} to actually add to database.");
-            context.AddRange(auctionsToAdd);
-            LogMaker.Log($"We have {auctionsToUpdate.Count} to update in the database.");
             try
             {
+                LogMaker.Log($"We have {auctionsToAdd.Count} to actually add to database for {tag}.");
+                context.AddRange(auctionsToAdd);
+                LogMaker.Log($"We have {auctionsToUpdate.Count} to update in the database for {tag}.");
                 context.UpdateRange(auctionsToUpdate.Where(l => l.PrimaryKey > 0));
             }
-            catch
+            catch (Exception ex)
             {
-                LogMaker.Log("___________________________________");
-                LogMaker.Log($"The instance of entity type 'WowAuction' cannot be tracked because another instance with the same key value for {{'PrimaryKey'}} is already being tracked. ");
-                LogMaker.Log("___________________________________");
+                LogMaker.Log("_______________DbUpdater_______________");
+                LogMaker.Log("UPDATE FOR AUCTIONS FAILED");
+                LogMaker.Log($"{ex.Message}");
+                LogMaker.Log("_______________DbUpdater_______________");
+                if (ex.InnerException.ToString() != null)
+                {
+                    LogMaker.Log($"{ex.InnerException}");
+                }
+                LogMaker.Log("_______________DbUpdater_______________");
             }
             context.SaveChanges();
 
         }
 
-        public async Task DbItemUpdaterAsync(LocalContext context, Listings auctions)
+        async Task DbItemUpdaterAsync(LocalContext context, Listings auctions, string tag)
         {
             List<WowItem> storedItems = context.WowItems.ToList();
             List<WowItem> itemsToAdd = new();
             WowItem trialItem = new();
 
-            LogMaker.Log($"{auctions.ExtraItems.Count} items to consider adding to the database.");
+            LogMaker.Log($"{auctions.ExtraItems.Count} items from {tag} auction house to consider adding to the database.");
 
             foreach (WowItem item in auctions.ExtraItems)
             {
@@ -102,13 +110,27 @@ namespace Feralas
                 trialItem = new();
             }
 
-            LogMaker.Log($"{itemsToAdd.Count} items to actually add to the database.");
-            await context.WowItems.AddRangeAsync(itemsToAdd);
-            await context.SaveChangesAsync();
-
+            LogMaker.Log($"{itemsToAdd.Count} items from {tag} auction house to actually add to the database.");
+            try
+            {
+                await context.WowItems.AddRangeAsync(itemsToAdd);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log("_______________DbUpdater_______________");
+                LogMaker.Log("UPDATE FOR ITEMS FAILED");
+                LogMaker.Log($"{ex.Message}");
+                LogMaker.Log("_______________DbUpdater_______________");
+                if (ex.InnerException.ToString() != null)
+                {
+                    LogMaker.Log($"{ex.InnerException}");
+                }
+                LogMaker.Log("_______________DbUpdater_______________");
+            }
         }
 
-        public async Task OldDbAuctionsUpdaterAsync(LocalContext context, Listings auctions)
+        async Task OldDbAuctionsUpdaterAsync(LocalContext context, Listings auctions)
         {
 
             DateTime cutOffTime = DateTime.Now - new TimeSpan(50, 50, 50);
@@ -157,7 +179,7 @@ namespace Feralas
 
         }
 
-        public async Task OldDbItemUpdaterAsync(LocalContext context, Listings auctions)
+        async Task OldDbItemUpdaterAsync(LocalContext context, Listings auctions)
         {
             List<WowItem> storedItems = context.WowItems.ToList();
             List<WowItem> itemsToAdd = new();

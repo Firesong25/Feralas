@@ -19,10 +19,29 @@ namespace Feralas
                 AccessToken = tok.AccessToken.ToString();
             }
 
+            int connectedRealmId = 0;
+
             List<Auction> auctions = new List<Auction>();
-            int connectedRealmId = await GetConnectedRealmId(wowNamespace, realmName);
+            try
+            {
+                connectedRealmId = await GetConnectedRealmId(wowNamespace, realmName);
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log($"connectedRealmId ------------- {ex.Message}");
+            }
+
+            if (connectedRealmId == 0)
+                return string.Empty;
+
             //string url = $"https://us.api.blizzard.com/data/wow/realm/{realmName}?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
             string url = $"https://us.api.blizzard.com/data/wow/connected-realm/{connectedRealmId}/auctions?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
+
+            if (wowNamespace.Contains("-eu"))
+            {
+                url = $"https://eu.api.blizzard.com/data/wow/connected-realm/{connectedRealmId}/auctions?namespace=dynamic-eu&locale=en_US&access_token={AccessToken}";
+            }
+
             string commoditiesUrl = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace={wowNamespace}&access_token={AccessToken}";
 
             HttpClient client = new();
@@ -38,7 +57,11 @@ namespace Feralas
 
         public static async Task<int> GetConnectedRealmId(string wowNamespace, string realmName)
         {
+            await Task.Delay(1);
             string url = $"https://us.api.blizzard.com/data/wow/realm/{realmName}?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
+
+            if (wowNamespace.Contains("-eu"))
+                url = $"https://eu.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-eu&realms.name.en_US={realmName}&access_token={AccessToken}";
 
             HttpClient client = new();
             int connectedRealmId = 0;
@@ -51,10 +74,12 @@ namespace Feralas
                     var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
                     foreach (KeyValuePair<string, object> pair in result)
                     {
-                        ////[3] = {[connected_realm, {{"href": "https://us.api.blizzard.com/data/wow/connected-realm/71?namespace=dynamic-us"}]}
-                        if (pair.Key == "connected_realm")
+                      if (pair.Value.ToString().Contains("connected-realm"))
                         {
-                            connectedRealmId = Convert.ToInt32(string.Concat(pair.Value.ToString().Where(char.IsNumber)));
+                            int realmspot = pair.Value.ToString().IndexOf("connected-realm");
+                            string numString = pair.Value.ToString().Substring(realmspot, 20);
+
+                            connectedRealmId = Convert.ToInt32(string.Concat(numString.Where(char.IsNumber)));
                             break;
                         }
                     }

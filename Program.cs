@@ -24,9 +24,12 @@ namespace Feralas
             //context.WowAuctions.RemoveRange(deleteMeToo);
             //context.SaveChanges();
 
-            RealmRunner anvilmarUs = new("anvilmar", "dynamic-us", context);
+            RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us", context);
+            RealmRunner kazzakEu = new("Kazzak", "dynamic-eu", context);
             try
             {
+                kazzakEu.Run();
+                await Task.Delay(new TimeSpan(0, 10, 0));
                 await anvilmarUs.Run();
             }
             catch (Exception ex)
