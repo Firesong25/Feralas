@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +18,13 @@ namespace Feralas
         public static async Task Init()
         {
             string configurationFile = "Configurations.txt";
+            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            if (isLinux)
+            {
+                LogMaker.Log($"OS is GNU/Linux go home home for config data.");
+                configurationFile = "/home/patrick/Configurations.txt";
+            }
+
             string serverName = "argentpony.database.windows.net";
 
             string[] configs = File.ReadAllLines(configurationFile);

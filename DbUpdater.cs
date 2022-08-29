@@ -38,7 +38,7 @@ namespace Feralas
             List<WowAuction> auctionsToUpdate = new();
             WowAuction trial = new();
 
-            LogMaker.Log($"We have {auctions.LiveAuctions.Count} to consider adding to database for {tag}.");
+            LogMaker.Log($"We have {auctions.LiveAuctions.Count} auctions to consider adding to database for {tag}.");
 
             foreach (WowAuction listing in auctions.LiveAuctions)
             {

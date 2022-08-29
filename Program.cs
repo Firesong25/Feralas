@@ -25,6 +25,7 @@ namespace Feralas
             //context.SaveChanges();
 
             RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us", context);
+            RealmRunner IllidanUs = new("Illidan", "dynamic-us", context);
             RealmRunner kazzakEu = new("Kazzak", "dynamic-eu", context);
             try
             {
