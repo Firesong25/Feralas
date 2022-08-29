@@ -6,18 +6,17 @@
         {
             realmName = slug;
             wowNamespace = blizzardNamespace;
-            LocalContext context = new();
         }
         // https://docs.microsoft.com/en-gb/ef/core/dbcontext-configuration/#avoiding-dbcontext-threading-issues
         //Using one context per thread to avoid collisions.
         string realmName;
         string wowNamespace;
-        LocalContext context;
 
         TimeSpan pollInterval = new TimeSpan(0, 20, 0);
 
         public async Task Run()
         {
+            LocalContext context = new();
             int runCount = 0;
             while (true)
             {

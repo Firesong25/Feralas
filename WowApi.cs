@@ -6,20 +6,20 @@ namespace Feralas
 {
     public static class WowApi
     {
+        static Token holdToken = new();
         static string AccessToken = string.Empty;
         static Stopwatch TokenTimer = new();
         public static async Task<string> GetRealmAuctions(string realmName, string wowNamespace)
         {
             string auctionsJson = string.Empty;
 
-            //if (AccessToken == string.Empty || TokenTimer.ElapsedMilliseconds / 1000 > 3600 || !TokenTimer.IsRunning)
-            //{
-            //    TokenTimer.Start();
-            //    Token tok = await GetElibilityToken();
-            //    AccessToken = tok.AccessToken.ToString();
-            //}
-
             Token tok = await GetElibilityToken();
+
+            if (tok == null)
+            {
+                LogMaker.Log($"Access token refused.");
+                return string.Empty;
+            }
             AccessToken = tok.AccessToken.ToString();
 
             int connectedRealmId = 0;
@@ -128,25 +128,48 @@ namespace Feralas
 
         private static async Task<Token> GetElibilityToken()
         {
-            string baseAddress = @"https://us.battle.net/oauth/token";
+            Token tok = new();
 
-            if (Configurations.BlizzardClientId == string.Empty)
-                await Configurations.Init();
+            if (AccessToken == string.Empty || TokenTimer.ElapsedMilliseconds / 1000 > 3600 || !TokenTimer.IsRunning)
+            {
+                TokenTimer.Start();
+                string baseAddress = @"https://us.battle.net/oauth/token";
 
-            HttpClient client = new();
+                if (Configurations.BlizzardClientId == string.Empty)
+                    await Configurations.Init();
 
-            string grant_type = "client_credentials";
+                HttpClient client = new();
 
-            var form = new Dictionary<string, string>
+                string grant_type = "client_credentials";
+
+                var form = new Dictionary<string, string>
                 {
                     {"grant_type", grant_type},
                     {"client_id", Configurations.BlizzardClientId},
                     {"client_secret", Configurations.BlizzardClientPassword},
                 };
 
-            HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
-            var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
-            Token tok = JsonConvert.DeserializeObject<Token>(jsonContent);
+                try
+                {
+                    HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
+                    var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
+                    tok = JsonConvert.DeserializeObject<Token>(jsonContent);
+                    holdToken = tok;
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.Log($"{ex.Message}");
+                    return null;
+                }
+
+            }
+            else
+            {
+                tok = holdToken;
+            }
+
+
+
             return tok;
         }
     }
