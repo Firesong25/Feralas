@@ -28,7 +28,7 @@ namespace Feralas
             // Log each new message
             using (StreamWriter sw = File.AppendText(path))
             {
-                await sw.WriteLineAsync($"{DateTime.UtcNow.ToLongTimeString()} {message} <br>");
+                await sw.WriteLineAsync($"{DateTime.UtcNow.ToLongTimeString()}:- {message} <br>");
             }
         }
     }

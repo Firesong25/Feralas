@@ -30,7 +30,7 @@ namespace Feralas
         {
             int connectedRealmId = auctions.LiveAuctions.FirstOrDefault().ConnectedRealmId;
 
-            DateTime cutOffTime = DateTime.Now - new TimeSpan(50, 50, 50);
+            DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
             List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
                 l.ConnectedRealmId == connectedRealmId &&
                 l.FirstSeenTime > cutOffTime).ToList();
@@ -45,13 +45,13 @@ namespace Feralas
                 trial = storedAuctions.FirstOrDefault(l => l.ConnectedRealmId == listing.ConnectedRealmId && l.AuctionId == listing.AuctionId);
                 if (trial == null)
                 {
-                    listing.FirstSeenTime = DateTime.Now - new TimeSpan(0, 5, 0);
-                    listing.LastSeenTime = DateTime.Now;
+                    listing.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0, 5, 0);
+                    listing.LastSeenTime = DateTime.UtcNow;
                     auctionsToAdd.Add(listing);
                 }
                 else
                 {
-                    listing.LastSeenTime = DateTime.Now;
+                    listing.LastSeenTime = DateTime.UtcNow;
                     auctionsToUpdate.Add(listing);
                 }
 
@@ -133,7 +133,7 @@ namespace Feralas
         async Task OldDbAuctionsUpdaterAsync(LocalContext context, Listings auctions)
         {
 
-            DateTime cutOffTime = DateTime.Now - new TimeSpan(50, 50, 50);
+            DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
             List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
                 l.FirstSeenTime > cutOffTime).ToList();
             List<WowAuction> auctionsToAdd = new();
@@ -147,13 +147,13 @@ namespace Feralas
                 trial = storedAuctions.FirstOrDefault(l => l.AuctionId == listing.AuctionId);
                 if (trial == null)
                 {
-                    listing.FirstSeenTime = DateTime.Now - new TimeSpan(0, 5, 0);
-                    listing.LastSeenTime = DateTime.Now;
+                    listing.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0, 5, 0);
+                    listing.LastSeenTime = DateTime.UtcNow;
                     auctionsToAdd.Add(listing);
                 }
                 else
                 {
-                    listing.LastSeenTime = DateTime.Now;
+                    listing.LastSeenTime = DateTime.UtcNow;
                     auctionsToUpdate.Add(listing);
                 }
 

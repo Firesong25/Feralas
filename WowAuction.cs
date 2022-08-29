@@ -5,19 +5,6 @@ namespace Feralas
 {
     public partial class WowAuction
     {
-        //public WowAuction()
-        //{ }
-        //public WowAuction(int auctionId, int quantity, int itemId, long unitPrice, long? buyout)
-        //{
-        //    AuctionId = auctionId;
-        //    FirstSeenTime = DateTime.Now;
-        //    LastSeenTime = DateTime.Now;
-        //    Quantity = quantity;
-        //    ItemId = itemId;
-        //    UnitPrice = unitPrice;
-        //    Buyout = buyout;
-        //}
-
         [Key]
         public long PrimaryKey { get; set; }
 

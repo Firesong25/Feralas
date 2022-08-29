@@ -43,7 +43,7 @@ namespace Feralas
             {
                 extraAuction.AuctionId = auction.id;
                 extraAuction.ConnectedRealmId = realmId;
-                extraAuction.LastSeenTime = DateTime.Now;
+                extraAuction.LastSeenTime = DateTime.UtcNow;
                 extraAuction.Quantity = auction.quantity;
                 extraAuction.Buyout = auction.buyout;
                 extraAuction.ItemId = auction.item.id;
