@@ -88,8 +88,15 @@ namespace Feralas
                 }
                 LogMaker.Log("_______________DbUpdater_______________");
             }
-            context.SaveChanges();
-
+            try
+            {
+                context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log($"Failed to save upsert of auctions.");
+                LogMaker.Log($"{ex.Message}");
+            }
         }
 
         async Task DbItemUpdaterAsync(LocalContext context, Listings auctions, string tag)

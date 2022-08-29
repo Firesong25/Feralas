@@ -15,23 +15,15 @@ namespace Feralas
 
             LogMaker.Log($"Starting process.");
             await Configurations.Init();
-            LocalContext context = new();
 
-            //To fix mistakes
-            //List<WowItem> deleteMe = context.WowItems.AsNoTracking().ToList();
-            //context.WowItems.RemoveRange(deleteMe);
-            //List<WowAuction> deleteMeToo = context.WowAuctions.AsNoTracking().ToList();
-            //context.WowAuctions.RemoveRange(deleteMeToo);
-            //context.SaveChanges();
-
-            RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us", context);
-            RealmRunner IllidanUs = new("Illidan", "dynamic-us", context);
-            RealmRunner kazzakEu = new("Kazzak", "dynamic-eu", context);
+            RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us");
+            RealmRunner IllidanUs = new("Illidan", "dynamic-us");
+            RealmRunner kazzakEu = new("Kazzak", "dynamic-eu");
             try
             {
                 anvilmarUs.Run();
                 await Task.Delay(new TimeSpan(0, 10, 0));
-                await kazzakEu.Run();
+                kazzakEu.Run();
                 await Task.Delay(new TimeSpan(0, 10, 0));
                 await IllidanUs.Run();
                 await Task.Delay(new TimeSpan(0, 10, 0));

@@ -12,6 +12,8 @@ namespace Feralas
         public int AuctionId { get; set; }
         public DateTime FirstSeenTime { get; set; }
         public DateTime LastSeenTime { get; set; }
+
+        public string PartitionKey { get; set; }
         public bool ShortTimeLeftSeen { get; set; }
         public bool Sold { get; set; }
         public int Quantity {get; set;}

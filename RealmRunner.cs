@@ -2,13 +2,14 @@
 {
     internal class RealmRunner
     {
-        public RealmRunner(string slug, string blizzardNamespace, LocalContext dbContext)
+        public RealmRunner(string slug, string blizzardNamespace)
         {
             realmName = slug;
             wowNamespace = blizzardNamespace;
-            context = dbContext;
+            LocalContext context = new();
         }
-
+        // https://docs.microsoft.com/en-gb/ef/core/dbcontext-configuration/#avoiding-dbcontext-threading-issues
+        //Using one context per thread to avoid collisions.
         string realmName;
         string wowNamespace;
         LocalContext context;

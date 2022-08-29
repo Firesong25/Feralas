@@ -43,13 +43,13 @@ namespace Feralas
             {
                 extraAuction.AuctionId = auction.id;
                 extraAuction.ConnectedRealmId = realmId;
+                extraAuction.PartitionKey = extraAuction.ConnectedRealmId.ToString();
                 extraAuction.LastSeenTime = DateTime.UtcNow;
                 extraAuction.Quantity = auction.quantity;
                 extraAuction.Buyout = auction.buyout;
                 extraAuction.ItemId = auction.item.id;
                 if (auction.time_left.ToLower().Contains("short"))
-                    extraAuction.ShortTimeLeftSeen = true;    
-
+                    extraAuction.ShortTimeLeftSeen = true;   
                 LiveAuctions.Add(extraAuction);
                 extraAuction = new();               
             }            
