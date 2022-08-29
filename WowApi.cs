@@ -32,7 +32,14 @@ namespace Feralas
             }
 
             if (connectedRealmId == 0)
+            {
+                LogMaker.Log($"Failed to get connected realm id for {realmName} on {wowNamespace}.");
                 return string.Empty;
+            }
+            else
+            {
+                LogMaker.Log($"Connected realm for {realmName} on {wowNamespace} is {connectedRealmId}.");
+            }
 
             //string url = $"https://us.api.blizzard.com/data/wow/realm/{realmName}?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
             string url = $"https://us.api.blizzard.com/data/wow/connected-realm/{connectedRealmId}/auctions?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";

@@ -49,10 +49,14 @@ namespace Feralas
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
             if (isLinux)
             {
+                LogMaker.Log($"OS is GNU/Linux. Hurray!");
                 optionsBuilder.UseSqlite($"Data Source=/home/patrick/Data/blizzard_data.db");
             }
             else
+            {
+                LogMaker.Log($"Running on Windows.");
                 optionsBuilder.UseSqlite($"Data Source=blizzard_data.db");
+            }
         }
 
     }
