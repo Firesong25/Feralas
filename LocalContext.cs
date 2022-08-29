@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Feralas
 {
@@ -42,13 +43,16 @@ namespace Feralas
 
 
 
-        // The following configures EF to create a Sqlite database file in the
-        // special "local" folder for your platform.
-        //protected override void OnConfiguring(DbContextOptionsBuilder options)
-        //    => options.UseSqlite($"Data Source={DbPath}");
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite($"Data Source=../blizzard_data.db");
+            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            if (isLinux)
+            {
+                optionsBuilder.UseSqlite($"Data Source=/home/patrick/Data/blizzard_data.db");
+            }
+            else
+                optionsBuilder.UseSqlite($"Data Source=blizzard_data.db");
         }
 
     }
