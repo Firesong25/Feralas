@@ -90,7 +90,7 @@ namespace Feralas
                 LogMaker.Log($"We have {auctionsToAdd.Count} to actually add to database for {tag}.");
                 context.AddRange(auctionsToAdd);
                 LogMaker.Log($"We have {auctionsToUpdate.Count} to update in the database for {tag}.");
-                context.UpdateRange(auctionsToUpdate.Where(l => l.Id != Guid.Empty));
+                context.UpdateRange(auctionsToUpdate);
             }
             catch (Exception ex)
             {
@@ -106,6 +106,7 @@ namespace Feralas
             }
             try
             {
+                LogMaker.Log($"Saving changes for {tag}.");
                 context.SaveChanges();
             }
             catch (Exception ex)

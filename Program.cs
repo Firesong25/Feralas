@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace Feralas
@@ -50,9 +51,14 @@ namespace Feralas
                     await anvilmarUs.Run();
                     await kazzakEu.Run();
                     await IllidanUs.Run();
-                }
+                    bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                    if (isLinux)
+                    {
+                        await Task.Delay(new TimeSpan(0, 20, 0));
+                    }
 
-                LogMaker.Log($"If I read this, something has gone wrong.");
+                    LogMaker.Log($"If I read this, something has gone wrong.");
+                }
             }
             catch (Exception ex)
             {
