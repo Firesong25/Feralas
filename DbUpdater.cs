@@ -28,11 +28,12 @@ namespace Feralas
 
         public async Task DbAuctionsUpdaterAsync(LocalContext context, Listings auctions, string tag)
         {
-            int connectedRealmId = auctions.LiveAuctions.FirstOrDefault().ConnectedRealmId;
+            await Task.Delay(1);
+            string PartitionKey = auctions.LiveAuctions.FirstOrDefault().PartitionKey;
 
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
             List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
-                l.ConnectedRealmId == connectedRealmId &&
+                l.PartitionKey == PartitionKey &&
                 l.FirstSeenTime > cutOffTime).ToList();
             List<WowAuction> auctionsToAdd = new();
             List<WowAuction> auctionsToUpdate = new();
@@ -42,9 +43,10 @@ namespace Feralas
 
             foreach (WowAuction listing in auctions.LiveAuctions)
             {
-                trial = storedAuctions.FirstOrDefault(l => l.ConnectedRealmId == listing.ConnectedRealmId && l.AuctionId == listing.AuctionId);
+                trial = storedAuctions.FirstOrDefault(l => l.PartitionKey == listing.PartitionKey && l.AuctionId == listing.AuctionId);
                 if (trial == null)
                 {
+                    listing.Id = Guid.NewGuid();
                     listing.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0, 5, 0);
                     listing.LastSeenTime = DateTime.UtcNow;
                     auctionsToAdd.Add(listing);
@@ -74,7 +76,7 @@ namespace Feralas
                 LogMaker.Log($"We have {auctionsToAdd.Count} to actually add to database for {tag}.");
                 context.AddRange(auctionsToAdd);
                 LogMaker.Log($"We have {auctionsToUpdate.Count} to update in the database for {tag}.");
-                context.UpdateRange(auctionsToUpdate.Where(l => l.PrimaryKey > 0));
+                context.UpdateRange(auctionsToUpdate.Where(l => l.Id != Guid.Empty));
             }
             catch (Exception ex)
             {
@@ -112,7 +114,11 @@ namespace Feralas
                 trialItem = storedItems.FirstOrDefault(l => l.ItemId == item.ItemId);
 
                 if (trialItem == null)
+                {
+                    item.Id = Guid.NewGuid();
                     itemsToAdd.Add(item);
+                }
+                    
 
                 trialItem = new();
             }
@@ -181,7 +187,7 @@ namespace Feralas
             LogMaker.Log($"We have {auctionsToAdd.Count} to actually add to database.");
             context.AddRange(auctionsToAdd);
             LogMaker.Log($"We have {auctionsToUpdate.Count} to update in the database.");
-            context.UpdateRange(auctionsToUpdate.Where(l => l.PrimaryKey > 0));
+            context.UpdateRange(auctionsToUpdate.Where(l => l.Id != Guid.Empty));
             context.SaveChanges();
 
         }

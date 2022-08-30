@@ -19,17 +19,14 @@ namespace Feralas.Migrations
 
             modelBuilder.Entity("Feralas.WowAuction", b =>
                 {
-                    b.Property<long>("PrimaryKey")
+                    b.Property<Guid?>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("AuctionId")
                         .HasColumnType("INTEGER");
 
                     b.Property<long?>("Buyout")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ConnectedRealmId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("FirstSeenTime")
@@ -56,16 +53,16 @@ namespace Feralas.Migrations
                     b.Property<long>("UnitPrice")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("PrimaryKey");
+                    b.HasKey("Id");
 
                     b.ToTable("WowAuctions");
                 });
 
             modelBuilder.Entity("Feralas.WowItem", b =>
                 {
-                    b.Property<int>("PrimaryKey")
+                    b.Property<Guid?>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("BonusList")
                         .HasColumnType("TEXT");
@@ -88,7 +85,7 @@ namespace Feralas.Migrations
                     b.Property<int?>("PetSpeciesId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("PrimaryKey");
+                    b.HasKey("Id");
 
                     b.ToTable("WowItems");
                 });

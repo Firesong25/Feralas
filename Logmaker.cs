@@ -1,35 +1,53 @@
-using System;
-using System.IO;
+using System.Runtime.InteropServices;
 
-namespace Feralas
+public static class LogMaker
 {
-    public static class LogMaker
+    static string logSpam = string.Empty;
+    static string title = string.Empty;
+    static string path = @"log.html";
+
+    static void GetTitle()
     {
-        static string logSpam;
-        static string path = @"log.html";
-        public static async void Log(string message)
+        if (title == string.Empty)
         {
-            if (message == logSpam)
-                return;
-
-            logSpam = message;
-
-            // This text is added only once to the file.
-            if (!File.Exists(path))
+            string assembly = System.Reflection.Assembly.GetExecutingAssembly().ToString();
+            string[] parts = assembly.Split(',');
+            string appName = parts[0];
+            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            if (isLinux)
             {
-                // Create a file to write to.
-                using (StreamWriter sw = File.CreateText(path))
-                {
-                    sw.WriteLine("<title>Feralas - Log</title>");
-                    sw.WriteLine("Log<br>");
-                }
+                title = $"{appName} on Linux";
             }
-
-            // Log each new message
-            using (StreamWriter sw = File.AppendText(path))
+            else
             {
-                await sw.WriteLineAsync($"{DateTime.UtcNow.ToLongTimeString()}:- {message} <br>");
+                title = $"{appName} on {Environment.MachineName}";
             }
+        }
+    }
+    public static async void Log(string message)
+    {
+        if (message == logSpam)
+            return;
+
+        logSpam = message;
+
+        GetTitle();
+
+        // This text is added only once to the file.
+        if (!File.Exists(path))
+        {
+            // Create a file to write to.
+            using (StreamWriter sw = File.CreateText(path))
+            {
+                sw.WriteLine($"<title>{title} - Log</title>");
+                sw.WriteLine("Log<br>");
+            }
+        }
+
+        // Log each new message
+        using (StreamWriter sw = File.AppendText(path))
+        {
+            await sw.WriteLineAsync($"{DateTime.UtcNow.ToLongTimeString()}:- {message} <br>");
         }
     }
 }

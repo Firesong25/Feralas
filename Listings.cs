@@ -10,7 +10,7 @@ namespace Feralas
     public class Listings
     {
 
-        static int realmId = 0;
+        static string realmId = string.Empty;
         static List<Auction> jsonAuctions = new();
         public List<WowAuction> LiveAuctions { get; private set; }
         public List<WowItem> ExtraItems { get; private set; }
@@ -30,9 +30,9 @@ namespace Feralas
             if (json.Length > 0)
             {
                 Root root = JsonSerializer.Deserialize<Root>(json);
-                string connectedRealmString= root.connected_realm.href;
+                string connectedRealmString = root.connected_realm.href;
                 jsonAuctions = root.auctions.ToList();
-                realmId = Convert.ToInt32(string.Concat(connectedRealmString.Where(char.IsNumber)));                
+                realmId = string.Concat(connectedRealmString.Where(char.IsNumber));
             }
         }
 
@@ -42,17 +42,18 @@ namespace Feralas
             foreach (Auction auction in jsonAuctions)
             {
                 extraAuction.AuctionId = auction.id;
-                extraAuction.ConnectedRealmId = realmId;
-                extraAuction.PartitionKey = extraAuction.ConnectedRealmId.ToString();
+                extraAuction.PartitionKey = realmId;
                 extraAuction.LastSeenTime = DateTime.UtcNow;
                 extraAuction.Quantity = auction.quantity;
                 extraAuction.Buyout = auction.buyout;
+                double itemPrice = (long)extraAuction.Buyout / extraAuction.Quantity;
+                extraAuction.UnitPrice = (long)Math.Floor(itemPrice);
                 extraAuction.ItemId = auction.item.id;
                 if (auction.time_left.ToLower().Contains("short"))
-                    extraAuction.ShortTimeLeftSeen = true;   
+                    extraAuction.ShortTimeLeftSeen = true;
                 LiveAuctions.Add(extraAuction);
-                extraAuction = new();               
-            }            
+                extraAuction = new();
+            }
         }
 
         public async Task GetExtraItemsAsync()
@@ -71,10 +72,27 @@ namespace Feralas
                 {
                     WowItem newbie = new();
                     newbie.ItemId = auction.item.id;
+                    newbie.Name = string.Empty;
+                    if (auction.item.bonus_lists != null)
+                    {
+                        string bonus_list = string.Empty;
+                        foreach (int i in auction.item.bonus_lists)
+                        {
+                            bonus_list += i.ToString();
+                            bonus_list += '-';
+                        }
+
+                        bonus_list = bonus_list.Remove(bonus_list.Length - 1, 1);
+                        newbie.BonusList = bonus_list;
+                    }
+                    else
+                    {
+                        newbie.BonusList = string.Empty;
+                    }
                     ExtraItems.Add(newbie);
                 }
 
-                
+
             }
         }
 

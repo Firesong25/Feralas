@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Feralas.Migrations
 {
-    public partial class First : Migration
+    public partial class first : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,9 +13,8 @@ namespace Feralas.Migrations
                 name: "WowAuctions",
                 columns: table => new
                 {
-                    PrimaryKey = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    ConnectedRealmId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    PartitionKey = table.Column<string>(type: "TEXT", nullable: true),
                     AuctionId = table.Column<int>(type: "INTEGER", nullable: false),
                     FirstSeenTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastSeenTime = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -28,15 +27,15 @@ namespace Feralas.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WowAuctions", x => x.PrimaryKey);
+                    table.PrimaryKey("PK_WowAuctions", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "WowItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ItemId = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     BonusList = table.Column<string>(type: "TEXT", nullable: true),
                     PetBreedId = table.Column<int>(type: "INTEGER", nullable: true),
