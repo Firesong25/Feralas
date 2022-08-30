@@ -41,6 +41,20 @@ namespace Feralas
 
             LogMaker.Log($"We have {auctions.LiveAuctions.Count} auctions to consider adding to database for {tag}.");
 
+            int z = 0;
+
+            LogMaker.Log($"Seeing which auctions on {tag} are already sold.");
+            foreach (WowAuction auction in storedAuctions)
+            {
+                trial = auctions.LiveAuctions.FirstOrDefault(l => l.AuctionId == auction.AuctionId);
+                if (trial == null && auction.ShortTimeLeftSeen == false)
+                {
+                    auction.Sold = true;
+                    auctionsToUpdate.Add(auction);
+                }
+                trial = new();
+            }
+            LogMaker.Log($"Seeing which auctions on {tag} are new and which need to be updated.");
             foreach (WowAuction listing in auctions.LiveAuctions)
             {
                 trial = storedAuctions.FirstOrDefault(l => l.PartitionKey == listing.PartitionKey && l.AuctionId == listing.AuctionId);
@@ -54,22 +68,22 @@ namespace Feralas
                 else
                 {
                     listing.LastSeenTime = DateTime.UtcNow;
-                    auctionsToUpdate.Add(listing);
+                    trial = auctionsToUpdate.FirstOrDefault(l => l.PartitionKey == listing.PartitionKey && l.AuctionId == listing.AuctionId);
+                    if (trial != null)
+                    {
+                        auctionsToUpdate.Add(listing);
+                    }                    
                 }
 
                 trial = new();
-            }
-
-            foreach (WowAuction auction in storedAuctions)
-            {
-                trial = auctions.LiveAuctions.FirstOrDefault(l => l.AuctionId == auction.AuctionId);
-                if (trial == null && auction.ShortTimeLeftSeen == false)
+                z++;
+                if (z % 15000 == 0)
                 {
-                    auction.Sold = true;
-                    auctionsToUpdate.Add(auction);
+
+                    LogMaker.Log($"{z} considered for {tag}.");
                 }
-                trial = new();
             }
+
 
             try
             {

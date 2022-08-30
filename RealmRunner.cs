@@ -14,29 +14,32 @@
         string wowNamespace;
 
         public DateTime LastUpdate { get; private set; }
-
-        TimeSpan pollInterval = new TimeSpan(0, 20, 0);
-
         public async Task Run()
         {
             LocalContext context = new();
+            System.Diagnostics.Stopwatch sw = new();
 
             try
             {
-                LogMaker.Log($"Auction run for {realmName} on {wowNamespace}.");
+                sw.Start();
+                string tag = $"{realmName} US";
+                if (wowNamespace.Contains("-eu"))
+                    tag = $"{realmName} EU";
+
+                LogMaker.Log($"Auction run for {tag}.");
                 string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace);
                 if (auctionsJson != string.Empty)
                 {
-                    LogMaker.Log($"The realm data for {realmName} using {wowNamespace} namespace is downloaded.");
+                    LogMaker.Log($"The realm data for {tag} namespace is downloaded.");
                     DbUpdater db = new();
-                    string tag = $"{realmName} US";
-                    if (wowNamespace.Contains("-eu"))
-                        tag = $"{realmName} EU";
                     await db.DoUpdatesAsync(context, auctionsJson, tag);
                     LastUpdate = DateTime.UtcNow;
                 }
                 else
-                    LogMaker.Log($"Failed to get realm data for {realmName} using {wowNamespace} namespace.");
+                    LogMaker.Log($"Failed to get realm data for {tag} namespace.");
+
+  
+                LogMaker.Log($"Getting {realmName} on {wowNamespace} done took {GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
             }
             catch (Exception ex)
             {
@@ -49,8 +52,16 @@
                     LogMaker.Log($"{ex.InnerException}");
                 LogMaker.Log($"________________{realmName} Run Failed___________________");
             }
+        }
 
-            await Task.Delay(pollInterval);
+        static string GetReadableTimeByMs(long ms)
+        {
+            // Based on answers https://stackoverflow.com/questions/9993883/convert-milliseconds-to-human-readable-time-lapse
+            TimeSpan t = TimeSpan.FromMilliseconds(ms);
+            if (t.Hours > 0) return $"{t.Hours} hours {t.Minutes} minutes {t.Seconds} seconds";
+            else if (t.Minutes > 0) return $"{t.Minutes}minutes {t.Seconds} seconds";
+            else if (t.Seconds > 0) return $"{t.Seconds} seconds";
+            else return $"{t.Milliseconds} milliseconds";
         }
     }
 }

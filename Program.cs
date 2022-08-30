@@ -44,14 +44,15 @@ namespace Feralas
 
             try
             {
-                await nordrassilEu.Run();
-                await Task.Delay(new TimeSpan(0, 1, 0));
-                await anvilmarUs.Run();
-                await Task.Delay(new TimeSpan(0, 1, 0));
-                await kazzakEu.Run();
-                await Task.Delay(new TimeSpan(0, 1, 0));
-                await IllidanUs.Run();
-                await Task.Delay(new TimeSpan(0, 15, 0));
+                while (true)
+                {
+                    await nordrassilEu.Run();
+                    await anvilmarUs.Run();
+                    await kazzakEu.Run();
+                    await IllidanUs.Run();
+                }
+
+                LogMaker.Log($"If I read this, something has gone wrong.");
             }
             catch (Exception ex)
             {
