@@ -165,6 +165,8 @@ namespace Feralas
             }
             else
             {
+
+                LogMaker.Log($"No token.");
                 tok = holdToken;
             }
 
