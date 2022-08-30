@@ -43,7 +43,8 @@ namespace Feralas
             {
                 extraAuction.AuctionId = auction.id;
                 extraAuction.PartitionKey = realmId;
-                extraAuction.LastSeenTime = DateTime.UtcNow;
+                extraAuction.LastSeenTime = DateTime.UtcNow;                
+                extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
                 extraAuction.Quantity = auction.quantity;
                 extraAuction.Buyout = auction.buyout;
                 double itemPrice = (long)extraAuction.Buyout / extraAuction.Quantity;

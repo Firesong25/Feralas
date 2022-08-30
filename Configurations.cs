@@ -13,23 +13,26 @@ namespace Feralas
         public static string BlizzardClientId { get; private set; }
         public static string BlizzardClientPassword { get; private set; }
 
+        public static string PostgresConnectionString { get; private set; }
         public static string CosmosConnectionString { get; private set; }
 
         public static async Task Init()
         {
-            string configurationFile = "Configurations.txt";
-            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-            if (isLinux)
-            {
-                LogMaker.Log($"OS is GNU/Linux go home so look home for config data.");
-                configurationFile = "/home/patrick/Configurations.txt";
-            }
+            string[] paths = { Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Data", "Configurations.txt" };
+            string configurationFile = Path.Combine(paths);
 
-            string serverName = "argentpony.database.windows.net";
+            PostgresConnectionString = String.Empty;
+
+            string serverName = "cleardragon.com";
 
             string[] configs = File.ReadAllLines(configurationFile);
             foreach (string config in configs)
             {
+                if (PostgresConnectionString == string.Empty && config.Contains(serverName))
+                {
+                    PostgresConnectionString = config;
+                }
+
                 if (CosmosConnectionString == string.Empty && config.Contains(serverName))
                 {
                     CosmosConnectionString = config;

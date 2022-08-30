@@ -9,7 +9,7 @@ namespace Feralas
         static Token holdToken = new();
         static string AccessToken = string.Empty;
         static Stopwatch TokenTimer = new();
-        public static async Task<string> GetRealmAuctions(string realmName, string wowNamespace)
+        public static async Task<string> GetRealmAuctions(string realmName, string wowNamespace, string tag)
         {
             string auctionsJson = string.Empty;
 
@@ -36,12 +36,12 @@ namespace Feralas
 
             if (connectedRealmId == 0)
             {
-                LogMaker.Log($"Failed to get connected realm id for {realmName} on {wowNamespace}.");
+                LogMaker.Log($"Failed to get connected realm id for {tag}.");
                 return string.Empty;
             }
             else
             {
-                LogMaker.Log($"Connected realm for {realmName} on {wowNamespace} is {connectedRealmId}.");
+                LogMaker.Log($"Connected realm id for {tag} is {connectedRealmId}.");
             }
 
             //string url = $"https://us.api.blizzard.com/data/wow/realm/{realmName}?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";

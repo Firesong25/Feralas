@@ -16,7 +16,7 @@
         public DateTime LastUpdate { get; private set; }
         public async Task Run()
         {
-            LocalContext context = new();
+            PostgresContext context = new();
             System.Diagnostics.Stopwatch sw = new();
 
             try
@@ -27,7 +27,7 @@
                     tag = $"{realmName} EU";
 
                 LogMaker.Log($"Auction run for {tag}.");
-                string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace);
+                string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace, tag);
                 if (auctionsJson != string.Empty)
                 {
                     LogMaker.Log($"The realm data for {tag} namespace is downloaded.");

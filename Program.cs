@@ -13,6 +13,8 @@ namespace Feralas
             if (File.Exists("log.html"))
                 File.Delete("log.html");
 
+            await Configurations.Init();
+
             //LocalContext context = new();
             //List<WowAuction> auctions = context.WowAuctions.ToList();
             //List<WowItem> items = context.WowItems.ToList();

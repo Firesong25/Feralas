@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Feralas
 {
     public class DbUpdater
     {
-        public async Task DoUpdatesAsync(LocalContext context, string json, string tag)
+        public async Task DoUpdatesAsync(PostgresContext context, string json, string tag)
         {
 
             LogMaker.Log($"{context.WowItems.Count()} items already stored.");
@@ -26,7 +27,7 @@ namespace Feralas
             LogMaker.Log($"{context.WowAuctions.Count()} auctions are now stored.");
         }
 
-        public async Task DbAuctionsUpdaterAsync(LocalContext context, Listings auctions, string tag)
+        public async Task DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
         {
             await Task.Delay(1);
             string PartitionKey = auctions.LiveAuctions.FirstOrDefault().PartitionKey;
@@ -62,7 +63,9 @@ namespace Feralas
                 {
                     listing.Id = Guid.NewGuid();
                     listing.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0, 5, 0);
+                    listing.FirstSeenTime = DateTime.SpecifyKind(listing.FirstSeenTime, DateTimeKind.Utc);
                     listing.LastSeenTime = DateTime.UtcNow;
+                    listing.LastSeenTime = DateTime.SpecifyKind(listing.LastSeenTime, DateTimeKind.Utc);
                     auctionsToAdd.Add(listing);
                 }
                 else
@@ -117,7 +120,7 @@ namespace Feralas
             }
         }
 
-        async Task DbItemUpdaterAsync(LocalContext context, Listings auctions, string tag)
+        async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)
         {
             List<WowItem> storedItems = context.WowItems.ToList();
             List<WowItem> itemsToAdd = new();
