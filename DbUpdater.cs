@@ -96,6 +96,7 @@ namespace Feralas
             }
             catch (Exception ex)
             {
+                LogMaker.Log("_______________DbUpdater_______________");
                 LogMaker.Log($"Failed to save upsert of auctions.");
                 LogMaker.Log($"{ex.Message}");
             }

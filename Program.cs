@@ -44,14 +44,14 @@ namespace Feralas
 
             try
             {
-                nordrassilEu.Run();
-                await Task.Delay(new TimeSpan(0, 7, 0));
-                anvilmarUs.Run();
-                await Task.Delay(new TimeSpan(0, 7, 0));
-                kazzakEu.Run();
-                await Task.Delay(new TimeSpan(0, 7, 0));
+                await nordrassilEu.Run();
+                await Task.Delay(new TimeSpan(0, 1, 0));
+                await anvilmarUs.Run();
+                await Task.Delay(new TimeSpan(0, 1, 0));
+                await kazzakEu.Run();
+                await Task.Delay(new TimeSpan(0, 1, 0));
                 await IllidanUs.Run();
-                await Task.Delay(new TimeSpan(0, 7, 0));
+                await Task.Delay(new TimeSpan(0, 15, 0));
             }
             catch (Exception ex)
             {
@@ -67,6 +67,15 @@ namespace Feralas
 
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");
+
+        }
+
+        static async Task Run(List<RealmRunner> realms)
+        {
+            foreach (RealmRunner realmRunner in realms)
+            {
+                realmRunner.Run();
+            }
 
         }
     }
