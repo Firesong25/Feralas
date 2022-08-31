@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 
-#nullable disable
 
 namespace Feralas
 {
@@ -15,7 +14,7 @@ namespace Feralas
         public int? PetQualityId { get; set; }
         public int? PetSpeciesId { get; set; }
         [Key]
-        public Guid? Id { get; set; }
+        public Guid Id { get; set; }
 
     }
 }

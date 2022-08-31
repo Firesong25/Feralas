@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Feralas
 {
-    public partial class WowAuction
+    public class WowAuction
     {
 
         public string PartitionKey { get; set; }
@@ -18,7 +18,19 @@ namespace Feralas
         public long? Buyout { get; set; }
 
         [Key]
-        public Guid? Id { get; set; }
+        public Guid Id { get; set; }
+
+        public bool Equals(WowAuction other)
+        {
+            if (other is null)
+                return false;
+
+            return this.Id == other.Id;
+        }
+
+        public override bool Equals(object obj) => Equals(obj as WowAuction);
+        public override int GetHashCode() => (Id).GetHashCode();
     }
+   
 }
 
