@@ -47,19 +47,15 @@ namespace Feralas
 
             try
             {
+                int z = 0;
                 while (true)
-                {
+                {                    
                     await nordrassilEu.Run();
                     await anvilmarUs.Run();
                     await kazzakEu.Run();
                     await IllidanUs.Run();
-                    bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-                    if (isLinux)
-                    {
-                        await Task.Delay(new TimeSpan(0, 20, 0));
-                    }
-
-                    LogMaker.Log($"If I read this, something has gone wrong.");
+                    z++;
+                    LogMaker.Log($"Auctions scan {z} complete.");
                 }
             }
             catch (Exception ex)

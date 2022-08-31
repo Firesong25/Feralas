@@ -82,17 +82,35 @@ namespace Feralas
                 z++;
                 if (z % 15000 == 0)
                 {
-
-                    LogMaker.Log($"{z} considered for {tag}.");
+                    try
+                    {
+                        LogMaker.Log($"{z} considered for {tag}. Save changes and proceed to add {auctionsToAdd.Count} and update {auctionsToUpdate.Count}.");
+                        context.AddRange(auctionsToAdd);
+                        context.UpdateRange(auctionsToUpdate);
+                        context.SaveChanges();
+                        auctionsToAdd = new();
+                        auctionsToUpdate = new();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMaker.Log("_______________DbUpdater_______________");
+                        LogMaker.Log($"Failed to save chunk of auctions.");
+                        LogMaker.Log($"{ex.Message}");
+                        LogMaker.Log("_______________DbUpdater_______________");
+                        if (ex.InnerException.ToString() != null)
+                        {
+                            LogMaker.Log($"{ex.InnerException}");
+                        }
+                    }
                 }
             }
 
 
             try
             {
-                LogMaker.Log($"We have {auctionsToAdd.Count} to actually add to database for {tag}.");
+                LogMaker.Log($"We have {auctionsToAdd.Count} left to actually add to database for {tag}.");
                 context.AddRange(auctionsToAdd);
-                LogMaker.Log($"We have {auctionsToUpdate.Count} to update in the database for {tag}.");
+                LogMaker.Log($"We have {auctionsToUpdate.Count} left to update in the database for {tag}.");
                 context.UpdateRange(auctionsToUpdate);
             }
             catch (Exception ex)

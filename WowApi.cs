@@ -31,12 +31,12 @@ namespace Feralas
             }
             catch (Exception ex)
             {
-                LogMaker.Log($"connectedRealmId ------------- {ex.Message}");
+                LogMaker.Log($"WowApi->GetConnectedRealmId ------------- {ex.Message}");
             }
 
             if (connectedRealmId == 0)
             {
-                LogMaker.Log($"Failed to get connected realm id for {tag}.");
+                LogMaker.Log($"WowApi->GetConnectedRealmId -------------Failed to get connected realm id for {tag}.");
                 return string.Empty;
             }
             else
@@ -44,7 +44,6 @@ namespace Feralas
                 LogMaker.Log($"Connected realm id for {tag} is {connectedRealmId}.");
             }
 
-            //string url = $"https://us.api.blizzard.com/data/wow/realm/{realmName}?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
             string url = $"https://us.api.blizzard.com/data/wow/connected-realm/{connectedRealmId}/auctions?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
 
             if (wowNamespace.Contains("-eu"))
