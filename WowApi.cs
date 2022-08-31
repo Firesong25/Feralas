@@ -15,12 +15,15 @@ namespace Feralas
 
             Token tok = await GetElibilityToken();
 
-            if (tok == null)
+            if (tok.AccessToken == null)
             {
-                LogMaker.Log($"Access token refused.");
-                return string.Empty;
+                LogMaker.Log($"Access token refused.  Use the old one...");
+                AccessToken = "USJTaraEEIsuGXHXvMnCOvDeJMVDh7ZSJg";
             }
-            AccessToken = tok.AccessToken.ToString();
+            else
+            {
+                AccessToken = tok.AccessToken.ToString();
+            }
 
             int connectedRealmId = 0;
 
@@ -164,8 +167,6 @@ namespace Feralas
             }
             else
             {
-
-                LogMaker.Log($"No token.");
                 tok = holdToken;
             }
 
