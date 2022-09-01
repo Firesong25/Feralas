@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Diagnostics;
 using System.IO;
+using System.Linq.Expressions;
 
 namespace Feralas
 {
@@ -58,10 +59,18 @@ namespace Feralas
 
             HttpClient client = new();
 
-            using (HttpContent content = client.GetAsync(url).Result.Content)
+            try
             {
-                auctionsJson = content.ReadAsStringAsync().Result;
-                await Task.Delay(1);
+                using (HttpContent content = client.GetAsync(url).Result.Content)
+                {
+                    auctionsJson = await content.ReadAsStringAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log("WowApi crash found.");
+                LogMaker.Log(ex.Message);
+                LogMaker.Log(ex.StackTrace);
             }
 
             return auctionsJson;
