@@ -34,6 +34,9 @@ namespace Feralas
                 jsonAuctions = root.auctions.ToList();
                 realmId = string.Concat(connectedRealmString.Where(char.IsNumber));
             }
+
+            await GetExtraItemsAsync();
+            await GetLiveAuctionsAsync();
         }
 
         public async Task GetLiveAuctionsAsync()

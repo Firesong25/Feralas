@@ -31,6 +31,8 @@ public static class LogMaker
 
         logSpam = message;
 
+        Console.WriteLine(message);
+
         GetTitle();
 
         // This text is added only once to the file.

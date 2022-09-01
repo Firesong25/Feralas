@@ -15,35 +15,32 @@ namespace Feralas
 
             await Configurations.Init();
 
-            //LocalContext context = new();
-            //List<WowAuction> auctions = context.WowAuctions.ToList();
-            //List<WowItem> items = context.WowItems.ToList();
+            //PostgresContext context = new PostgresContext();
+            //List<WowAuction> allAuctions = context.WowAuctions.Where(l => l.PartitionKey == "1393").ToList();
 
+            //context.WowAuctions.RemoveRange(allAuctions);
+            //context.SaveChanges();
 
+            //allAuctions = context.WowAuctions.ToList();
 
-            //foreach (WowAuction auction in auctions)
+            //foreach (WowAuction auction in allAuctions)
             //{
-            //    if (auction.Id == Guid.Empty)
-            //        auction.Id = Guid.NewGuid();
-            //    auction.PartitionKey = auction.ConnectedRealmId.ToString();
-
+            //    auction.FirstSeenTime = DateTime.UtcNow - new TimeSpan(1, 30, 0);
+            //    auction.FirstSeenTime = DateTime.SpecifyKind(auction.FirstSeenTime, DateTimeKind.Utc);
             //}
 
-            //context.WowAuctions.UpdateRange(auctions);
-            //context.WowItems.RemoveRange(items);
+            //context.WowAuctions.UpdateRange(allAuctions);
             //context.SaveChanges();
-            //Console.WriteLine("Done");
             //return;
 
 
-
             LogMaker.Log($"Starting process.");
-            await Configurations.Init();
 
-            RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us");
+            
             RealmRunner IllidanUs = new("Illidan", "dynamic-us");
             RealmRunner kazzakEu = new("Kazzak", "dynamic-eu");
             RealmRunner nordrassilEu = new("Nordrassil","dynamic-eu");
+            RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us");
 
             try
             {
@@ -51,9 +48,10 @@ namespace Feralas
                 while (true)
                 {
                     await nordrassilEu.Run();
-                    await kazzakEu.Run();                    
-                    await anvilmarUs.Run();                    
-                    await IllidanUs.Run();
+                    await anvilmarUs.Run();
+                    await IllidanUs.Run();                    
+                    await kazzakEu.Run();    
+
                     z++;
                     LogMaker.Log($"Auctions scan {z} complete.");
                     await Task.Delay(new TimeSpan(0, 15, 0));
@@ -73,15 +71,6 @@ namespace Feralas
 
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");
-
-        }
-
-        static async Task Run(List<RealmRunner> realms)
-        {
-            foreach (RealmRunner realmRunner in realms)
-            {
-                realmRunner.Run();
-            }
 
         }
     }
