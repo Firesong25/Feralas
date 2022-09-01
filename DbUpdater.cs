@@ -18,22 +18,27 @@ namespace Feralas
             PostgresContext context = new PostgresContext();
 
             await DbItemUpdaterAsync(context, auctions, tag);
-            await DbAuctionsUpdaterAsync(context, auctions, tag);
+            await DbAuctionsUpdaterAsync(auctions, tag);
         }
 
-        public async Task DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
+        public async Task DbAuctionsUpdaterAsync(Listings auctions, string tag)
         {
 
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
+            List<WowAuction> storedAuctions = new();
             string PartitionKey = incoming.FirstOrDefault().PartitionKey;
 
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
-            List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
+
+            using (PostgresContext postgresContext = new())
+            {
+                storedAuctions = postgresContext.WowAuctions.Where(l =>
                 l.PartitionKey == PartitionKey &&
                 l.Sold == false &&
-                l.FirstSeenTime > cutOffTime).ToList();
+                l.FirstSeenTime > cutOffTime).AsNoTracking().ToList();
+            }
 
             List<WowAuction> auctionsToAdd = incoming.Except(storedAuctions).ToList();
             // set right now as last time the auction was seen
@@ -62,15 +67,17 @@ namespace Feralas
                 {
                     auction.Sold = true;
                 }
-            }
-
+            }            
             
             try
             {
                 LogMaker.Log($"We have {auctionsToAdd.Count} to add and {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions in the database for {tag}.");
-                PostgresContext postgresContext = new();
-                postgresContext.AddRange(auctionsToAdd);                
-                await postgresContext.SaveChangesAsync();
+
+                using (PostgresContext postgresContext = new())
+                {
+                    postgresContext.AddRange(auctionsToAdd);
+                    await postgresContext.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -109,9 +116,11 @@ namespace Feralas
 
                     foreach (List<WowAuction> shortList in chunks)
                     {
-                        PostgresContext postgresContext = new PostgresContext();
-                        postgresContext.UpdateRange(shortList);
-                        await postgresContext.SaveChangesAsync();
+                        using (PostgresContext postgresContext = new())
+                        {
+                            postgresContext.UpdateRange(shortList);
+                            await postgresContext.SaveChangesAsync();
+                        }
                         iter++;
                     }
 
@@ -119,9 +128,11 @@ namespace Feralas
                 }
                 else
                 {
-                    PostgresContext postgresContext = new PostgresContext();
-                    postgresContext.UpdateRange(auctionsToUpdate);
-                    await postgresContext.SaveChangesAsync();
+                    using (PostgresContext postgresContext = new())
+                    {
+                        postgresContext.UpdateRange(auctionsToUpdate);
+                        await postgresContext.SaveChangesAsync();
+                    }
                 }
             }
             catch (Exception ex)
@@ -173,9 +184,11 @@ namespace Feralas
                 }
                 else
                 {
-                    PostgresContext postgresContext = new();
-                    postgresContext.UpdateRange(absentListings);
-                    await postgresContext.SaveChangesAsync();
+                    using (PostgresContext postgresContext = new())
+                    {
+                        postgresContext.UpdateRange(absentListings);
+                        await postgresContext.SaveChangesAsync();
+                    }
                 }
             }
             catch (Exception ex)

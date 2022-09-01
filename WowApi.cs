@@ -57,55 +57,65 @@ namespace Feralas
 
             string commoditiesUrl = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace={wowNamespace}&access_token={AccessToken}";
 
-            HttpClient client = new();
-
             try
             {
-                using (HttpContent content = client.GetAsync(url).Result.Content)
-                {
-                    auctionsJson = await content.ReadAsStringAsync();
-                }
+                HttpClient client = new();
+                HttpResponseMessage response = await client.GetAsync(url);
+                HttpContent content = response.Content;
+                auctionsJson = await content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
                 LogMaker.Log("WowApi crash found.");
                 LogMaker.Log(ex.Message);
-                LogMaker.Log(ex.StackTrace);
             }
+            //try
+            //{
+            //    using (HttpContent content = client.GetAsync(url).Result.Content)
+            //    {
+            //        auctionsJson = await content.ReadAsStringAsync();
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    LogMaker.Log("WowApi crash found.");
+            //    LogMaker.Log(ex.Message);
+            //    LogMaker.Log(ex.StackTrace);
+            //}
 
-            if (auctionsJson == string.Empty)
-            {
-                try
-                {
-                    using (HttpContent content = client.GetAsync(url).Result.Content)
-                    {
-                        auctionsJson = await content.ReadAsStringAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMaker.Log("WowApi crash found Try 2.");
-                    LogMaker.Log(ex.Message);
-                    LogMaker.Log(ex.StackTrace);
-                }
-            }
+            //if (auctionsJson == string.Empty)
+            //{
+            //    try
+            //    {
+            //        using (HttpContent content = client.GetAsync(url).Result.Content)
+            //        {
+            //            auctionsJson = await content.ReadAsStringAsync();
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        LogMaker.Log("WowApi crash found Try 2.");
+            //        LogMaker.Log(ex.Message);
+            //        LogMaker.Log(ex.StackTrace);
+            //    }
+            //}
 
-            if (auctionsJson == string.Empty)
-            {
-                try
-                {
-                    using (HttpContent content = client.GetAsync(url).Result.Content)
-                    {
-                        auctionsJson = await content.ReadAsStringAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMaker.Log("WowApi crash found Try 3.");
-                    LogMaker.Log(ex.Message);
-                    LogMaker.Log(ex.StackTrace);
-                }
-            }
+            //if (auctionsJson == string.Empty)
+            //{
+            //    try
+            //    {
+            //        using (HttpContent content = client.GetAsync(url).Result.Content)
+            //        {
+            //            auctionsJson = await content.ReadAsStringAsync();
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        LogMaker.Log("WowApi crash found Try 3.");
+            //        LogMaker.Log(ex.Message);
+            //        LogMaker.Log(ex.StackTrace);
+            //    }
+            //}
 
             return auctionsJson;
         }
