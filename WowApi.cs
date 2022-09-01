@@ -73,6 +73,40 @@ namespace Feralas
                 LogMaker.Log(ex.StackTrace);
             }
 
+            if (auctionsJson == string.Empty)
+            {
+                try
+                {
+                    using (HttpContent content = client.GetAsync(url).Result.Content)
+                    {
+                        auctionsJson = await content.ReadAsStringAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.Log("WowApi crash found Try 2.");
+                    LogMaker.Log(ex.Message);
+                    LogMaker.Log(ex.StackTrace);
+                }
+            }
+
+            if (auctionsJson == string.Empty)
+            {
+                try
+                {
+                    using (HttpContent content = client.GetAsync(url).Result.Content)
+                    {
+                        auctionsJson = await content.ReadAsStringAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.Log("WowApi crash found Try 3.");
+                    LogMaker.Log(ex.Message);
+                    LogMaker.Log(ex.StackTrace);
+                }
+            }
+
             return auctionsJson;
         }
 

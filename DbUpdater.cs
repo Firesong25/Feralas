@@ -68,10 +68,9 @@ namespace Feralas
             try
             {
                 LogMaker.Log($"We have {auctionsToAdd.Count} to add and {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions in the database for {tag}.");
-                int cnt = context.WowAuctions.Count();
-                context.AddRange(auctionsToAdd);                
-                context.SaveChanges();
-                cnt = context.WowAuctions.Count();
+                PostgresContext postgresContext = new();
+                postgresContext.AddRange(auctionsToAdd);                
+                await postgresContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -110,8 +109,9 @@ namespace Feralas
 
                     foreach (List<WowAuction> shortList in chunks)
                     {
-                        context.UpdateRange(shortList);
-                        context.SaveChanges();
+                        PostgresContext postgresContext = new PostgresContext();
+                        postgresContext.UpdateRange(shortList);
+                        await postgresContext.SaveChangesAsync();
                         iter++;
                     }
 
@@ -119,8 +119,9 @@ namespace Feralas
                 }
                 else
                 {
-                    context.UpdateRange(auctionsToUpdate);
-                    context.SaveChanges();
+                    PostgresContext postgresContext = new PostgresContext();
+                    postgresContext.UpdateRange(auctionsToUpdate);
+                    await postgresContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
@@ -130,6 +131,7 @@ namespace Feralas
                 LogMaker.Log("_______________UPDATE FOR AUCTIONS FAILED_______________");
                 if (ex.InnerException.ToString() != null)
                 {
+                    LogMaker.Log($"_______________DbUpdater InnerException_______________");
                     LogMaker.Log($"{ex.InnerException}");
                 }
                 LogMaker.Log("_______________DbUpdater_______________");
@@ -161,8 +163,9 @@ namespace Feralas
 
                     foreach (List<WowAuction> shortList in chunks)
                     {
-                        context.UpdateRange(shortList);
-                        context.SaveChanges();
+                        PostgresContext postgresContext = new();
+                        postgresContext.UpdateRange(shortList);
+                        await postgresContext.SaveChangesAsync();
                         iter++;
                     }
 
@@ -170,8 +173,9 @@ namespace Feralas
                 }
                 else
                 {
-                    context.UpdateRange(absentListings);
-                    context.SaveChanges();
+                    PostgresContext postgresContext = new();
+                    postgresContext.UpdateRange(absentListings);
+                    await postgresContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
