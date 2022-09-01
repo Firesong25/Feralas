@@ -29,24 +29,29 @@ namespace Feralas
             int connectedRealmId = 0;
 
             List<Auction> auctions = new List<Auction>();
-            try
+
+            if (!realmName.ToLower().Contains("commodities"))
             {
-                connectedRealmId = await GetConnectedRealmId(wowNamespace, realmName);
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log($"WowApi->GetConnectedRealmId ------------- {ex.Message}");
+                try
+                {
+                    connectedRealmId = await GetConnectedRealmId(wowNamespace, realmName);
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.Log($"WowApi->GetConnectedRealmId ------------- {ex.Message}");
+                }
+
+                if (connectedRealmId == 0)
+                {
+                    LogMaker.Log($"WowApi->GetConnectedRealmId -------------Failed to get connected realm id for {tag}.");
+                    return string.Empty;
+                }
+                else
+                {
+                    LogMaker.Log($"Connected realm id for {tag} is {connectedRealmId}.");
+                }
             }
 
-            if (connectedRealmId == 0)
-            {
-                LogMaker.Log($"WowApi->GetConnectedRealmId -------------Failed to get connected realm id for {tag}.");
-                return string.Empty;
-            }
-            else
-            {
-                LogMaker.Log($"Connected realm id for {tag} is {connectedRealmId}.");
-            }
 
             string url = $"https://us.api.blizzard.com/data/wow/connected-realm/{connectedRealmId}/auctions?namespace={wowNamespace}&locale=en_US&access_token={AccessToken}";
 
@@ -55,11 +60,21 @@ namespace Feralas
                 url = $"https://eu.api.blizzard.com/data/wow/connected-realm/{connectedRealmId}/auctions?namespace=dynamic-eu&locale=en_US&access_token={AccessToken}";
             }
 
-            string commoditiesUrl = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace={wowNamespace}&access_token={AccessToken}";
+            if (realmName.ToLower().Contains("commodities") && wowNamespace.Contains("-us"))
+            {
+                url = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace={wowNamespace}&access_token={AccessToken}";
+            }
+
+            
 
             try
             {
-                HttpClient client = new();
+                HttpClientHandler hch = new HttpClientHandler();
+                hch.Proxy = null;
+                hch.UseProxy = false;
+
+                HttpClient client = new HttpClient(hch);
+                client.Timeout = TimeSpan.FromMinutes(10);
                 HttpResponseMessage response = await client.GetAsync(url);
                 HttpContent content = response.Content;
                 auctionsJson = await content.ReadAsStringAsync();
@@ -69,53 +84,23 @@ namespace Feralas
                 LogMaker.Log("WowApi crash found.");
                 LogMaker.Log(ex.Message);
             }
-            //try
-            //{
-            //    using (HttpContent content = client.GetAsync(url).Result.Content)
-            //    {
-            //        auctionsJson = await content.ReadAsStringAsync();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    LogMaker.Log("WowApi crash found.");
-            //    LogMaker.Log(ex.Message);
-            //    LogMaker.Log(ex.StackTrace);
-            //}
 
-            //if (auctionsJson == string.Empty)
-            //{
-            //    try
-            //    {
-            //        using (HttpContent content = client.GetAsync(url).Result.Content)
-            //        {
-            //            auctionsJson = await content.ReadAsStringAsync();
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        LogMaker.Log("WowApi crash found Try 2.");
-            //        LogMaker.Log(ex.Message);
-            //        LogMaker.Log(ex.StackTrace);
-            //    }
-            //}
-
-            //if (auctionsJson == string.Empty)
-            //{
-            //    try
-            //    {
-            //        using (HttpContent content = client.GetAsync(url).Result.Content)
-            //        {
-            //            auctionsJson = await content.ReadAsStringAsync();
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        LogMaker.Log("WowApi crash found Try 3.");
-            //        LogMaker.Log(ex.Message);
-            //        LogMaker.Log(ex.StackTrace);
-            //    }
-            //}
+            if (auctionsJson == string.Empty)
+            {
+                await Task.Delay(new TimeSpan(0, 0, 15));
+                try
+                {
+                    HttpClient client = new();
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    HttpContent content = response.Content;
+                    auctionsJson = await content.ReadAsStringAsync();
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.Log("WowApi crash found again after 30 second delay.");
+                    LogMaker.Log(ex.Message);
+                }
+            }
 
             return auctionsJson;
         }

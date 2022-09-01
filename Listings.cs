@@ -18,34 +18,49 @@ namespace Feralas
         WowAuction extraAuction = new();
         WowAuction trialAuction = new();
 
-        public async Task CreateLists(string json)
+        public async Task CreateLists(string json, string tag)
         {
             await Task.Delay(1); // happy now?
             LiveAuctions = new();
             ExtraItems = new();
 
-            int c = 0;
-
-
             if (json.Length > 0)
             {
                 Root root = JsonSerializer.Deserialize<Root>(json);
-                string connectedRealmString = root.connected_realm.href;
+                string connectedRealmString = string.Empty;
+
+                if (root.connected_realm != null)
+                {
+                    connectedRealmString = root.connected_realm.href;
+                    realmId = string.Concat(connectedRealmString.Where(char.IsNumber));
+                }
+                
                 jsonAuctions = root.auctions.ToList();
-                realmId = string.Concat(connectedRealmString.Where(char.IsNumber));
+                
             }
 
             await GetExtraItemsAsync();
-            await GetLiveAuctionsAsync();
+            await GetLiveAuctionsAsync(tag);
         }
 
-        public async Task GetLiveAuctionsAsync()
+        public async Task GetLiveAuctionsAsync(string tag)
         {
             await Task.Delay(1); // happy now?
             foreach (Auction auction in jsonAuctions)
             {
                 extraAuction.AuctionId = auction.id;
-                extraAuction.PartitionKey = realmId;
+                if (tag.ToLower().Contains("commodities us"))
+                {
+                    extraAuction.PartitionKey = "12345";
+                }
+                else if (tag.ToLower().Contains("commodities eu"))
+                {
+                    extraAuction.PartitionKey = "54321";
+                }
+                else
+                {
+                    extraAuction.PartitionKey = realmId;
+                }
                 extraAuction.LastSeenTime = DateTime.UtcNow;                
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
                 extraAuction.Quantity = auction.quantity;

@@ -13,7 +13,7 @@ namespace Feralas
         public async Task DoUpdatesAsync(string json, string tag)
         {
             Listings auctions = new();
-            await auctions.CreateLists(json);
+            await auctions.CreateLists(json, tag);
 
             PostgresContext context = new PostgresContext();
 
@@ -71,8 +71,9 @@ namespace Feralas
 
             try
             {
-                LogMaker.Log($"We have {auctionsToAdd.Count} to add and {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions in the database for {tag}.");
+                LogMaker.Log($"Saving {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions for {tag}.");
 
+                // new auctions added
                 using (PostgresContext postgresContext = new())
                 {
                     postgresContext.AddRange(auctionsToAdd);
@@ -92,47 +93,11 @@ namespace Feralas
             }
             try
             {
-                LogMaker.Log($"Saving changes for {tag}.");
-                if (auctionsToUpdate.Count > 150000)
+                // updating auctions
+                using (PostgresContext postgresContext = new())
                 {
-                    int iter = 0;
-                    int numToTake = 10000;
-                    List<List<WowAuction>> chunks = new();
-
-                    while (iter < auctionsToUpdate.Count - numToTake)
-                    {
-                        int cnt = auctionsToUpdate.Count;
-                        List<WowAuction> shortList = auctionsToUpdate.GetRange(iter, numToTake);
-                        chunks.Add(shortList);
-                        iter += numToTake;
-                    }
-
-                    if (chunks.Count > 0)
-                    {
-                        List<WowAuction> shortList = auctionsToUpdate.GetRange(iter, auctionsToUpdate.Count - iter);
-                        chunks.Add(shortList);
-                    }
-                    iter = 0;
-
-                    foreach (List<WowAuction> shortList in chunks)
-                    {
-                        using (PostgresContext postgresContext = new())
-                        {
-                            postgresContext.UpdateRange(shortList);
-                            await postgresContext.SaveChangesAsync();
-                        }
-                        iter++;
-                    }
-
-                    LogMaker.Log($"Updated {auctionsToUpdate.Count} auction listings for {tag} in {iter} batches.");
-                }
-                else
-                {
-                    using (PostgresContext postgresContext = new())
-                    {
-                        postgresContext.UpdateRange(auctionsToUpdate);
-                        await postgresContext.SaveChangesAsync();
-                    }
+                    postgresContext.UpdateRange(auctionsToUpdate);
+                    await postgresContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
@@ -150,47 +115,11 @@ namespace Feralas
 
             try
             {
-                LogMaker.Log($"Marking expired auctions for {tag}.");
-                if (absentListings.Count > 150000)
+                // marking sold auctions
+                using (PostgresContext postgresContext = new())
                 {
-                    int iter = 0;
-                    int numToTake = 10000;
-                    List<List<WowAuction>> chunks = new();
-
-                    while (iter < auctionsToUpdate.Count - numToTake)
-                    {
-                        int cnt = auctionsToUpdate.Count;
-                        List<WowAuction> shortList = auctionsToUpdate.GetRange(iter, numToTake);
-                        chunks.Add(shortList);
-                        iter += numToTake;
-                    }
-
-                    if (chunks.Count > 0)
-                    {
-                        List<WowAuction> shortList = auctionsToUpdate.GetRange(iter, auctionsToUpdate.Count - iter);
-                        chunks.Add(shortList);
-                    }
-                    iter = 0;
-
-                    foreach (List<WowAuction> shortList in chunks)
-                    {
-                        using (PostgresContext postgresContext = new())
-                        {
-                            postgresContext.UpdateRange(shortList);
-                            await postgresContext.SaveChangesAsync();
-                            iter++;
-                        }
-                    }
-
-                    LogMaker.Log($"Updated {auctionsToUpdate.Count} auction listings for {tag} in {iter} batches.");
-                }
-                else
-                {
-                    using (PostgresContext postgresContext = new())
-                    {
-                        postgresContext.UpdateRange(absentListings);
-                        await postgresContext.SaveChangesAsync();
-                    }
+                    postgresContext.UpdateRange(absentListings);
+                    await postgresContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)

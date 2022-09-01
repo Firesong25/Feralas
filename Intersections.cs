@@ -15,7 +15,7 @@ namespace Feralas
         {
             
             Listings auctions = new();
-            await auctions.CreateLists(json);
+            await auctions.CreateLists(json, tag);
             List<WowAuction> incoming = auctions.LiveAuctions;
             PostgresContext context = new();
             List<WowAuction> stored = context.WowAuctions.ToList();

@@ -18,18 +18,32 @@ public static class LogMaker
             {
                 string machineName = Environment.MachineName;
                 char c = machineName[0];
-                string C = c.ToString().ToUpper();
+                string niceName = c.ToString().ToUpper();
 
-                for (int i = 1; i < machineName.Length - 1; i++)
+                for (int i = 1; i < machineName.Length; i++)
                 {
-                    C.Append(machineName[i]);
+                    niceName += machineName[i];
                 }
-                title = $"{appName} on {C}";
+                title = $"{appName} on {niceName}";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                string machineName = Environment.MachineName;
+                char c = machineName[0];
+                string niceName = c.ToString().ToUpper();
+
+                for (int i = 1; i < machineName.Length; i++)
+                {
+                    string letter = machineName[i].ToString();
+                    niceName += letter.ToLower();
+                }
+                title = $"{appName} on {niceName}";
             }
             else
             {
                 title = $"{appName} on {Environment.MachineName}";
             }
+            
         }
     }
     public static async void Log(string message)

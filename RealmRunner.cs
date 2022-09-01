@@ -17,49 +17,8 @@ namespace Feralas
 
         public DateTime LastUpdate { get; private set; }
 
-        public async Task StatsRun()
-        {
-            System.Diagnostics.Stopwatch sw = new();
-
-            try
-            {
-                sw.Start();
-                string tag = $"{realmName} US";
-                if (wowNamespace.Contains("-eu"))
-                    tag = $"{realmName} EU";
-
-                LogMaker.Log($"Auction run for {tag}.");
-                string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace, tag);
-                if (auctionsJson != string.Empty)
-                {
-                    LogMaker.Log($"The realm data for {tag} namespace is downloaded.");                    
-                }
-                else
-                    LogMaker.Log($"Failed to get realm data for {tag} namespace.");
-
-                Intersections setMaker = new();
-                await setMaker.CompareListsFromJson(auctionsJson, tag);
-
-
-                LogMaker.Log($"Getting {realmName} on {wowNamespace} done took {GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log($"________________{realmName} Run Failed___________________");
-                LogMaker.Log(ex.Message);
-                LogMaker.Log("___________________________________");
-                LogMaker.Log(ex.StackTrace);
-                LogMaker.Log("___________________________________");
-                if (ex.InnerException != null)
-                    LogMaker.Log($"{ex.InnerException}");
-                LogMaker.Log($"________________{realmName} Run Failed___________________");
-            }
-
-
-        }
         public async Task Run()
         {
-            PostgresContext context = new();
             System.Diagnostics.Stopwatch sw = new();
 
             try
@@ -69,7 +28,17 @@ namespace Feralas
                 if (wowNamespace.Contains("-eu"))
                     tag = $"{realmName} EU";
 
-                LogMaker.Log($"Auction run for {tag}.");
+                if (realmName.ToLower().Contains("commodities") && wowNamespace.Contains("-us"))
+                {
+                    tag = "US commodities";
+                }
+
+                if (realmName.ToLower().Contains("commodities") && wowNamespace.Contains("-eu"))
+                {
+                    tag = "EU commodities";
+                }
+
+                LogMaker.Log($"Auction house scan for {tag}.");
                 string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace, tag);
                 if (auctionsJson != string.Empty)
                 {
@@ -81,7 +50,7 @@ namespace Feralas
                 else
                     LogMaker.Log($"Failed to get realm data for {tag} namespace.");
 
-  
+
                 LogMaker.Log($"Getting {tag} done took {GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
             }
             catch (Exception ex)
