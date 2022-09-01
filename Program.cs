@@ -15,24 +15,6 @@ namespace Feralas
 
             await Configurations.Init();
 
-            //PostgresContext context = new PostgresContext();
-            //List<WowAuction> allAuctions = context.WowAuctions.Where(l => l.PartitionKey == "1393").ToList();
-
-            //context.WowAuctions.RemoveRange(allAuctions);
-            //context.SaveChanges();
-
-            //allAuctions = context.WowAuctions.ToList();
-
-            //foreach (WowAuction auction in allAuctions)
-            //{
-            //    auction.FirstSeenTime = DateTime.UtcNow - new TimeSpan(1, 30, 0);
-            //    auction.FirstSeenTime = DateTime.SpecifyKind(auction.FirstSeenTime, DateTimeKind.Utc);
-            //}
-
-            //context.WowAuctions.UpdateRange(allAuctions);
-            //context.SaveChanges();
-            //return;
-
 
             LogMaker.Log($"Starting process.");
 
@@ -47,10 +29,12 @@ namespace Feralas
                 int z = 0;
                 while (true)
                 {
-                    await nordrassilEu.Run();
+                    // in order of size
+                    await kazzakEu.Run();
+                    await IllidanUs.Run();  
                     await anvilmarUs.Run();
-                    await IllidanUs.Run();                    
-                    await kazzakEu.Run();    
+                    await nordrassilEu.Run();
+
 
                     z++;
                     LogMaker.Log($"Auctions scan {z} complete.");

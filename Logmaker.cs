@@ -31,7 +31,7 @@ public static class LogMaker
 
         logSpam = message;
 
-        Console.WriteLine(message);
+        //Console.WriteLine(message);
 
         GetTitle();
 
