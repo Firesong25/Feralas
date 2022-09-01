@@ -16,7 +16,15 @@ public static class LogMaker
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
             if (isLinux)
             {
-                title = $"{appName} on Linux";
+                string machineName = Environment.MachineName;
+                char c = machineName[0];
+                string C = c.ToString().ToUpper();
+
+                for (int i = 1; i < machineName.Length - 1; i++)
+                {
+                    C.Append(machineName[i]);
+                }
+                title = $"{appName} on {C}";
             }
             else
             {

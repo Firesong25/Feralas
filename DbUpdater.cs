@@ -44,7 +44,7 @@ namespace Feralas
             // set right now as last time the auction was seen
             foreach (WowAuction auction in auctionsToAdd)
             {
-                auction.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0,5,0);
+                auction.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0, 5, 0);
                 auction.FirstSeenTime = DateTime.SpecifyKind(auction.FirstSeenTime, DateTimeKind.Utc);
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
@@ -67,8 +67,8 @@ namespace Feralas
                 {
                     auction.Sold = true;
                 }
-            }            
-            
+            }
+
             try
             {
                 LogMaker.Log($"We have {auctionsToAdd.Count} to add and {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions in the database for {tag}.");
@@ -93,7 +93,7 @@ namespace Feralas
             try
             {
                 LogMaker.Log($"Saving changes for {tag}.");
-                if (auctionsToUpdate.Count > 10000)
+                if (auctionsToUpdate.Count > 150000)
                 {
                     int iter = 0;
                     int numToTake = 10000;
@@ -151,7 +151,7 @@ namespace Feralas
             try
             {
                 LogMaker.Log($"Marking expired auctions for {tag}.");
-                if (absentListings.Count > 10000)
+                if (absentListings.Count > 150000)
                 {
                     int iter = 0;
                     int numToTake = 10000;
@@ -174,10 +174,12 @@ namespace Feralas
 
                     foreach (List<WowAuction> shortList in chunks)
                     {
-                        PostgresContext postgresContext = new();
-                        postgresContext.UpdateRange(shortList);
-                        await postgresContext.SaveChangesAsync();
-                        iter++;
+                        using (PostgresContext postgresContext = new())
+                        {
+                            postgresContext.UpdateRange(shortList);
+                            await postgresContext.SaveChangesAsync();
+                            iter++;
+                        }
                     }
 
                     LogMaker.Log($"Updated {auctionsToUpdate.Count} auction listings for {tag} in {iter} batches.");
