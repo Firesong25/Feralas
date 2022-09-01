@@ -49,13 +49,14 @@ namespace Feralas
             {
                 int z = 0;
                 while (true)
-                {                    
+                {
                     await nordrassilEu.Run();
-                    await anvilmarUs.Run();
-                    await kazzakEu.Run();
+                    await kazzakEu.Run();                    
+                    await anvilmarUs.Run();                    
                     await IllidanUs.Run();
                     z++;
                     LogMaker.Log($"Auctions scan {z} complete.");
+                    await Task.Delay(new TimeSpan(0, 15, 0));
                 }
             }
             catch (Exception ex)

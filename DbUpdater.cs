@@ -12,9 +12,6 @@ namespace Feralas
     {
         public async Task DoUpdatesAsync(PostgresContext context, string json, string tag)
         {
-
-            LogMaker.Log($"{context.WowItems.Count()} items already stored.");
-            LogMaker.Log($"{context.WowAuctions.Count()} auctions already stored.");
             Listings auctions = new();
             await auctions.CreateLists(json);
             await auctions.GetExtraItemsAsync();
@@ -22,95 +19,52 @@ namespace Feralas
 
 
             await DbItemUpdaterAsync(context, auctions, tag);
-            LogMaker.Log($"{context.WowItems.Count()} items are now stored.");
             await DbAuctionsUpdaterAsync(context, auctions, tag);
-            LogMaker.Log($"{context.WowAuctions.Count()} auctions are now stored.");
         }
 
         public async Task DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
         {
-            await Task.Delay(1);
-            string PartitionKey = auctions.LiveAuctions.FirstOrDefault().PartitionKey;
 
+            await Task.Delay(1);
+            List<WowAuction> incoming = auctions.LiveAuctions;
+            string PartitionKey = incoming.FirstOrDefault().PartitionKey;
+
+            // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
             List<WowAuction> storedAuctions = context.WowAuctions.Where(l =>
                 l.PartitionKey == PartitionKey &&
+                l.Sold == false &&
                 l.FirstSeenTime > cutOffTime).ToList();
-            List<WowAuction> auctionsToAdd = new();
-            List<WowAuction> auctionsToUpdate = new();
-            WowAuction trial = new();
 
-            LogMaker.Log($"We have {auctions.LiveAuctions.Count} auctions to consider adding to database for {tag}.");
+            List<WowAuction> auctionsToAdd = incoming.Except(storedAuctions).ToList();
+            List<WowAuction> auctionsToUpdate = (from b in storedAuctions
+                                                 join bl in incoming on
+                                                 new { AuctionId = b.AuctionId } equals
+                                                 new { AuctionId = bl.AuctionId }
+                                                 select b).ToList();
 
-            int z = 0;
-
-            LogMaker.Log($"Seeing which auctions on {tag} are already sold.");
-            foreach (WowAuction auction in storedAuctions)
+            // set right now as last time the auction was seen
+            foreach (WowAuction auction in auctionsToUpdate)
             {
-                trial = auctions.LiveAuctions.FirstOrDefault(l => l.AuctionId == auction.AuctionId);
-                if (trial == null && auction.ShortTimeLeftSeen == false)
+                auction.LastSeenTime = DateTime.UtcNow;
+                auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
+            }
+
+            // many absent listings are sold
+            List<WowAuction> absentListings = storedAuctions.Except(incoming).ToList();
+            foreach (WowAuction auction in absentListings)
+            {
+                if (auction.ShortTimeLeftSeen == false)
                 {
                     auction.Sold = true;
-                    auctionsToUpdate.Add(auction);
-                }
-                trial = new();
-            }
-            LogMaker.Log($"Seeing which auctions on {tag} are new and which need to be updated.");
-            foreach (WowAuction listing in auctions.LiveAuctions)
-            {
-                trial = storedAuctions.FirstOrDefault(l => l.PartitionKey == listing.PartitionKey && l.AuctionId == listing.AuctionId);
-                if (trial == null)
-                {
-                    listing.Id = Guid.NewGuid();
-                    listing.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0, 5, 0);
-                    listing.FirstSeenTime = DateTime.SpecifyKind(listing.FirstSeenTime, DateTimeKind.Utc);
-                    listing.LastSeenTime = DateTime.UtcNow;
-                    listing.LastSeenTime = DateTime.SpecifyKind(listing.LastSeenTime, DateTimeKind.Utc);
-                    auctionsToAdd.Add(listing);
-                }
-                else
-                {
-                    listing.LastSeenTime = DateTime.UtcNow;
-                    trial = auctionsToUpdate.FirstOrDefault(l => l.PartitionKey == listing.PartitionKey && l.AuctionId == listing.AuctionId);
-                    if (trial != null)
-                    {
-                        auctionsToUpdate.Add(listing);
-                    }                    
-                }
-
-                trial = new();
-                z++;
-                if (z % 15000 == 0)
-                {
-                    try
-                    {
-                        LogMaker.Log($"{z} considered for {tag}. Save changes and proceed to add {auctionsToAdd.Count} and update {auctionsToUpdate.Count}.");
-                        context.AddRange(auctionsToAdd);
-                        context.UpdateRange(auctionsToUpdate);
-                        context.SaveChanges();
-                        auctionsToAdd = new();
-                        auctionsToUpdate = new();
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMaker.Log("_______________DbUpdater_______________");
-                        LogMaker.Log($"Failed to save chunk of auctions.");
-                        LogMaker.Log($"{ex.Message}");
-                        LogMaker.Log("_______________DbUpdater_______________");
-                        if (ex.InnerException.ToString() != null)
-                        {
-                            LogMaker.Log($"{ex.InnerException}");
-                        }
-                    }
                 }
             }
 
 
             try
             {
-                LogMaker.Log($"We have {auctionsToAdd.Count} left to actually add to database for {tag}.");
+                LogMaker.Log($"We have {auctionsToAdd.Count} to add and {auctionsToUpdate.Count}to update in the database for {tag}.");
                 context.AddRange(auctionsToAdd);
-                LogMaker.Log($"We have {auctionsToUpdate.Count} left to update in the database for {tag}.");
                 context.UpdateRange(auctionsToUpdate);
             }
             catch (Exception ex)
@@ -155,7 +109,7 @@ namespace Feralas
                     item.Id = Guid.NewGuid();
                     itemsToAdd.Add(item);
                 }
-                    
+
 
                 trialItem = new();
             }
