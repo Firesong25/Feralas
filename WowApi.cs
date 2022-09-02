@@ -28,7 +28,7 @@ namespace Feralas
             int connectedRealmId = 0;
 
             List<Auction> auctions = new List<Auction>();
-            CachedConnectedRealmIds.Add("First one", 1);
+            //CachedConnectedRealmIds.Add("First one", 1);
 
             if (!realmName.ToLower().Contains("commodities"))
             {

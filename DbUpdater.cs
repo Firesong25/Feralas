@@ -164,7 +164,7 @@ namespace Feralas
 
             List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).Take(100).ToList();
             // run this async - it takes about 2 minutes
-            DbItemNamerAsync(itemsToBeNamed);
+            // DbItemNamerAsync(itemsToBeNamed);
         }
 
         async Task DbItemNamerAsync(List<WowItem> itemsToAdd)
