@@ -174,6 +174,7 @@ namespace Feralas
                 try
                 {
                     itemm.Name = await WowApi.GetItemName(itemm.ItemId);
+                    LogMaker.Log($"{itemm.Name} added to the database.");
                 }
                 catch
                 {
