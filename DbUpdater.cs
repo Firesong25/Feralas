@@ -67,7 +67,7 @@ namespace Feralas
             {
                 try
                 {
-                    LogMaker.Log($"{tag}: {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
+                    LogMaker.Log($"{tag} {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
 
                     // new auctions added
                     postgresContext.AddRange(auctionsToAdd);
@@ -153,6 +153,49 @@ namespace Feralas
             {
                 LogMaker.Log("_______________DbUpdater_______________");
                 LogMaker.Log("UPDATE FOR ITEMS FAILED");
+                LogMaker.Log($"{ex.Message}");
+                LogMaker.Log("_______________DbUpdater_______________");
+                if (ex.InnerException.ToString() != null)
+                {
+                    LogMaker.Log($"{ex.InnerException}");
+                }
+                LogMaker.Log("_______________DbUpdater_______________");
+            }
+
+            List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).Take(100).ToList();
+            // run this async - it takes about 2 minutes
+            DbItemNamerAsync(itemsToBeNamed);
+        }
+
+        async Task DbItemNamerAsync(List<WowItem> itemsToAdd)
+        {
+            foreach (WowItem itemm in itemsToAdd)
+            {
+                try
+                {
+                    itemm.Name = await WowApi.GetItemName(itemm.ItemId);
+                }
+                catch
+                {
+                    LogMaker.Log($"Blizzard API timeout");
+                    await Task.Delay(1000 * 60);
+                }
+                await Task.Delay(100);
+            }
+
+
+            try
+            {
+                using (PostgresContext context = new())
+                {
+                    context.WowItems.UpdateRange(itemsToAdd);
+                    await context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMaker.Log("_______________DbUpdater_______________");
+                LogMaker.Log("-----------NAMING FOR ITEMS FAILED");
                 LogMaker.Log($"{ex.Message}");
                 LogMaker.Log("_______________DbUpdater_______________");
                 if (ex.InnerException.ToString() != null)

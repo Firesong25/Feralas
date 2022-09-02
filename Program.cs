@@ -16,7 +16,7 @@ namespace Feralas
 
             int y = 0;
             int z = 0;
-            RealmRunner IllidanUs = new("Illidan", "dynamic-us");
+
             RealmRunner kazzakEu = new("Kazzak", "dynamic-eu");
             RealmRunner nordrassilEu = new("Nordrassil", "dynamic-eu");
             RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us");
@@ -29,27 +29,33 @@ namespace Feralas
 
             while (true)
             {
-                // in order of size
-                kazzakEu.Run();
+                RealmRunner realmRunner = new("Kazzak", "dynamic-eu");
+                realmRunner.Run();
                 await Task.Delay(new TimeSpan(0, 5, 0));
-                IllidanUs.Run();
+                realmRunner = new("Illidan", "dynamic-us");
+                realmRunner.Run();
                 await Task.Delay(new TimeSpan(0, 5, 0));
-                anvilmarUs.Run();
+                realmRunner = new("Anvilmar", "dynamic-us");
+                realmRunner.Run();
                 await Task.Delay(new TimeSpan(0, 5, 0));
-                nordrassilEu.Run();
+                realmRunner = new("Nordrassil", "dynamic-eu");
+                realmRunner.Run();
                 await Task.Delay(new TimeSpan(0, 5, 0));
                 z++;
                 LogMaker.Log($"Auctions scan {z} complete.");
                 if (z % 5 == 0)
                 {
-                    commoditiesUs.Run();
+                    realmRunner = new("Commodities", "dynamic-us");
+                    realmRunner.Run();
                     await Task.Delay(new TimeSpan(0, 5, 0));
-                    commoditiesEu.Run();
+                    realmRunner = new("Commodities", "dynamic-eu");
+                    realmRunner.Run();
                     await Task.Delay(new TimeSpan(0, 5, 0));
                     y++;
                     LogMaker.Log($"Commodities scan {y} complete.");
                 }
-                
+                realmRunner = new("Free this memory", "please!");
+
             }
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");
