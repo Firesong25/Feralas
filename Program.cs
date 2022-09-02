@@ -14,6 +14,7 @@ namespace Feralas
             await Configurations.Init();
 
 
+            int y = 0;
             int z = 0;
             RealmRunner IllidanUs = new("Illidan", "dynamic-us");
             RealmRunner kazzakEu = new("Kazzak", "dynamic-eu");
@@ -33,14 +34,17 @@ namespace Feralas
                 nordrassilEu.Run();
                 await Task.Delay(new TimeSpan(0, 5, 0));
                 z++;
+                LogMaker.Log($"Auctions scan {z} complete.");
                 if (z % 5 == 0)
                 {
                     commoditiesUs.Run();
                     await Task.Delay(new TimeSpan(0, 5, 0));
                     commoditiesEu.Run();
                     await Task.Delay(new TimeSpan(0, 5, 0));
+                    y++;
+                    LogMaker.Log($"Commodities scan {y} complete.");
                 }
-                LogMaker.Log($"Auctions scan {z} complete.");
+                
             }
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");

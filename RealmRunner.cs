@@ -38,11 +38,11 @@ namespace Feralas
                     tag = "EU commodities";
                 }
 
-                LogMaker.Log($"Auction house scan for {tag}.");
+                LogMaker.Log($"{tag}: Auction house scan.");
                 string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace, tag);
                 if (auctionsJson != string.Empty)
                 {
-                    LogMaker.Log($"The realm data for {tag} namespace is downloaded.");
+                    //LogMaker.Log($"The realm data for {tag} namespace is downloaded.");
                     DbUpdater db = new();
                     await db.DoUpdatesAsync(auctionsJson, tag);
                     LastUpdate = DateTime.UtcNow;
@@ -51,7 +51,7 @@ namespace Feralas
                     LogMaker.Log($"Failed to get realm data for {tag} namespace.");
 
 
-                LogMaker.Log($"Getting {tag} done took {GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+                LogMaker.Log($"{tag}: scan and database update took {GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
             }
             catch (Exception ex)
             {

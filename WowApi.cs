@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.Diagnostics;
-using System.IO;
-using System.Linq.Expressions;
 
 namespace Feralas
 {
@@ -48,7 +46,7 @@ namespace Feralas
                 }
                 else
                 {
-                    LogMaker.Log($"Connected realm id for {tag} is {connectedRealmId}.");
+                    //LogMaker.Log($"Connected realm id for {tag} is {connectedRealmId}.");
                 }
             }
 
@@ -198,6 +196,8 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
+
+                    LogMaker.Log($"------------------- Error getting access token------------------");
                     LogMaker.Log($"{ex.Message}");
                     return null;
                 }

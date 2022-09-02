@@ -1,10 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Feralas
 {
@@ -69,69 +63,64 @@ namespace Feralas
                 }
             }
 
-            try
+            using (PostgresContext postgresContext = new())
             {
-                LogMaker.Log($"Saving {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions for {tag}.");
-
-                // new auctions added
-                using (PostgresContext postgresContext = new())
+                try
                 {
+                    LogMaker.Log($"{tag}: Saving {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
+
+                    // new auctions added
                     postgresContext.AddRange(auctionsToAdd);
                     await postgresContext.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log("_______________DbUpdater_______________");
-                LogMaker.Log($"{ex.Message}");
-                LogMaker.Log("_______________ADDING NEW AUCTIONS FAILED_______________");
-                if (ex.InnerException.ToString() != null)
+
+                catch (Exception ex)
                 {
-                    LogMaker.Log($"{ex.InnerException}");
+                    LogMaker.Log("_______________DbUpdater_______________");
+                    LogMaker.Log($"{ex.Message}");
+                    LogMaker.Log("_______________ADDING NEW AUCTIONS FAILED_______________");
+                    if (ex.InnerException.ToString() != null)
+                    {
+                        LogMaker.Log($"{ex.InnerException}");
+                    }
+                    LogMaker.Log("_______________DbUpdater_______________");
                 }
-                LogMaker.Log("_______________DbUpdater_______________");
-            }
-            try
-            {
-                // updating auctions
-                using (PostgresContext postgresContext = new())
+                try
                 {
+                    // updating auctions
                     postgresContext.UpdateRange(auctionsToUpdate);
                     await postgresContext.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log($"_______________DbUpdater_______________");
-                LogMaker.Log($"{ex.Message}");
-                LogMaker.Log("_______________UPDATE FOR AUCTIONS FAILED_______________");
-                if (ex.InnerException.ToString() != null)
+                catch (Exception ex)
                 {
-                    LogMaker.Log($"_______________DbUpdater InnerException_______________");
-                    LogMaker.Log($"{ex.InnerException}");
+                    LogMaker.Log($"_______________DbUpdater_______________");
+                    LogMaker.Log($"{ex.Message}");
+                    LogMaker.Log("_______________UPDATE FOR AUCTIONS FAILED_______________");
+                    if (ex.InnerException.ToString() != null)
+                    {
+                        LogMaker.Log($"_______________DbUpdater InnerException_______________");
+                        LogMaker.Log($"{ex.InnerException}");
+                    }
+                    LogMaker.Log("_______________DbUpdater_______________");
                 }
-                LogMaker.Log("_______________DbUpdater_______________");
-            }
 
-            try
-            {
-                // marking sold auctions
-                using (PostgresContext postgresContext = new())
+                try
                 {
+                    // marking sold auctions
                     postgresContext.UpdateRange(absentListings);
                     await postgresContext.SaveChangesAsync();
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log($"_______________DbUpdater_______________");
-                LogMaker.Log($"{ex.Message}");
-                LogMaker.Log("_______________UPDATE FOR EXPIRED AUCTIONS FAILED_______________");
-                if (ex.InnerException.ToString() != null)
+                catch (Exception ex)
                 {
-                    LogMaker.Log($"{ex.InnerException}");
+                    LogMaker.Log($"_______________DbUpdater_______________");
+                    LogMaker.Log($"{ex.Message}");
+                    LogMaker.Log("_______________UPDATE FOR EXPIRED AUCTIONS FAILED_______________");
+                    if (ex.InnerException.ToString() != null)
+                    {
+                        LogMaker.Log($"{ex.InnerException}");
+                    }
+                    LogMaker.Log("_______________DbUpdater_______________");
                 }
-                LogMaker.Log("_______________DbUpdater_______________");
             }
         }
 
