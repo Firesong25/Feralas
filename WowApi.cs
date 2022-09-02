@@ -8,6 +8,7 @@ namespace Feralas
         static Token holdToken = new();
         static string AccessToken = string.Empty;
         static Stopwatch TokenTimer = new();
+        static Dictionary<string, int> CachedConnectedRealmIds;
         public static async Task<string> GetRealmAuctions(string realmName, string wowNamespace, string tag)
         {
             string auctionsJson = string.Empty;
@@ -32,7 +33,16 @@ namespace Feralas
             {
                 try
                 {
-                    connectedRealmId = await GetConnectedRealmId(wowNamespace, realmName);
+                    if (CachedConnectedRealmIds.ContainsKey(tag))
+                    { 
+                        connectedRealmId = CachedConnectedRealmIds[tag];
+                    }
+                    else
+                    {
+                        connectedRealmId = await GetConnectedRealmId(wowNamespace, realmName);
+                        CachedConnectedRealmIds.Add(tag, connectedRealmId);
+                    }
+                    
                 }
                 catch (Exception ex)
                 {
