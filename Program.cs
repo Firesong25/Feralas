@@ -43,17 +43,17 @@ namespace Feralas
                 await Task.Delay(new TimeSpan(0, 5, 0));
                 z++;
                 LogMaker.Log($"Auctions scan {z} complete.");
-                if (z % 5 == 0)
-                {
-                    realmRunner = new("Commodities", "dynamic-us");
-                    realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, 5, 0));
-                    realmRunner = new("Commodities", "dynamic-eu");
-                    realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, 5, 0));
-                    y++;
-                    LogMaker.Log($"Commodities scan {y} complete.");
-                }
+                //if (z % 5 == 0)
+                //{
+                //    realmRunner = new("Commodities", "dynamic-us");
+                //    realmRunner.Run();
+                //    await Task.Delay(new TimeSpan(0, 5, 0));
+                //    realmRunner = new("Commodities", "dynamic-eu");
+                //    realmRunner.Run();
+                //    await Task.Delay(new TimeSpan(0, 5, 0));
+                //    y++;
+                //    LogMaker.Log($"Commodities scan {y} complete.");
+                //}
                 realmRunner = new("Free this memory", "please!");
 
             }
