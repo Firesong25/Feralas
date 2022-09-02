@@ -67,7 +67,7 @@ namespace Feralas
             {
                 try
                 {
-                    LogMaker.Log($"{tag}: Saving {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
+                    LogMaker.Log($"{tag}: {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
 
                     // new auctions added
                     postgresContext.AddRange(auctionsToAdd);

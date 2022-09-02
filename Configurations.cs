@@ -1,12 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Feralas
+﻿namespace Feralas
 {
     public static class Configurations
     {
@@ -21,7 +13,7 @@ namespace Feralas
             string[] paths = { Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Data", "Configurations.txt" };
             string configurationFile = Path.Combine(paths);
 
-            PostgresConnectionString = String.Empty;
+            PostgresConnectionString = string.Empty;
 
             string serverName = "cleardragon.com";
 
@@ -50,6 +42,7 @@ namespace Feralas
                     BlizzardClientPassword = configStrings[1];
                 }
             }
+            await Task.Delay(1); // stop Linux warnings
         }
     }
 }

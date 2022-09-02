@@ -22,6 +22,14 @@ namespace Feralas
             RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us");
             RealmRunner commoditiesUs = new("Commodities", "dynamic-us");
             RealmRunner commoditiesEu = new("Commodities", "dynamic-eu");
+
+            LogMaker.Log($"DELETE AFTER THIS");
+            await commoditiesEu.Run();
+
+            
+            return;
+            LogMaker.Log($"DELETE UNTIL THIS");
+
             while (true)
             {
                 // in order of size

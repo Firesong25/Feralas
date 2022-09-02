@@ -60,10 +60,15 @@ namespace Feralas
 
             if (realmName.ToLower().Contains("commodities") && wowNamespace.Contains("-us"))
             {
-                url = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace={wowNamespace}&access_token={AccessToken}";
+                url = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-us&access_token={AccessToken}";
             }
 
-            
+            if (realmName.ToLower().Contains("commodities") && wowNamespace.Contains("-eu"))
+            {
+                url = $"https://eu.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-eu&access_token={AccessToken}";
+            }
+
+        
 
             try
             {
@@ -85,17 +90,18 @@ namespace Feralas
 
             if (auctionsJson == string.Empty)
             {
-                await Task.Delay(new TimeSpan(0, 0, 15));
+                await Task.Delay(new TimeSpan(0, 1, 0));
                 try
                 {
                     HttpClient client = new();
+                    client.Timeout = TimeSpan.FromMinutes(10);
                     HttpResponseMessage response = await client.GetAsync(url);
                     HttpContent content = response.Content;
                     auctionsJson = await content.ReadAsStringAsync();
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.Log("WowApi crash found again after 30 second delay.");
+                    LogMaker.Log("WowApi crash found again after 60 second delay.");
                     LogMaker.Log(ex.Message);
                 }
             }
