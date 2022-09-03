@@ -184,7 +184,23 @@ namespace Feralas
             }
 
             return itemName;
+
+            /*
+                // Why are these names held back? Keeping here for reference
+                Dictionary<int, string> mappedNames = new();
+                mappedNames.Add(123868, "Relic of Shakama");
+                mappedNames.Add(123869, "Relic of Elune");
+                mappedNames.Add(56054, "Gleaming Flipper");
+                mappedNames.Add(54629, "Prickly Thorn");
+                mappedNames.Add(60405, "Stubby Bear Tail");
+                mappedNames.Add(158078, "Cracked Overlord's Scepter");
+                mappedNames.Add(123865, "Relic of Ursol");
+                mappedNames.Add(60406, "Blood-Caked Incisors");
+                mappedNames.Add(60390, "Reticulated Tissue");
+                mappedNames.Add(178149, "Centurion Anima Core");
+            */
         }
+
 
         private static async Task<Token> GetElibilityToken()
         {

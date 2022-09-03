@@ -49,11 +49,11 @@ namespace Feralas
             foreach (Auction auction in jsonAuctions)
             {
                 extraAuction.AuctionId = auction.id;
-                if (tag.ToLower().Contains("commodities us"))
+                if (tag.ToLower().Contains("us commodities"))
                 {
                     extraAuction.PartitionKey = "12345";
                 }
-                else if (tag.ToLower().Contains("commodities eu"))
+                else if (tag.ToLower().Contains("eu commodities"))
                 {
                     extraAuction.PartitionKey = "54321";
                 }
