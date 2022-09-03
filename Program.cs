@@ -13,7 +13,6 @@ namespace Feralas
 
             await Configurations.Init();
 
-
             int y = 0;
             int z = 0;
 

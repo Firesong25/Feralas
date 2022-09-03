@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
  https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable.except?redirectedfrom=MSDN&view=net-6.0#System_Linq_Enumerable_Except__1_System_Collections_Generic_IEnumerable___0__System_Collections_Generic_IEnumerable___0__
  
  */
-
+#nullable enable
 namespace Feralas
 {
     public class WowAuction : IEquatable<WowAuction> //

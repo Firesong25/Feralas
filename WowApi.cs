@@ -178,6 +178,11 @@ namespace Feralas
                 }
             }
 
+            if (itemName.Length < 2)
+            {
+                itemName = "Test Bunny";
+            }
+
             return itemName;
         }
 

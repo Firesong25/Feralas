@@ -162,9 +162,18 @@ namespace Feralas
                 LogMaker.Log("_______________DbUpdater_______________");
             }
 
-            List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).Take(100).ToList();
-            // run this async - it takes about 2 minutes
-            // DbItemNamerAsync(itemsToBeNamed);
+            List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).ToList();
+
+            if (itemsToBeNamed.Count > 100)
+            {
+                itemsToBeNamed = itemsToBeNamed.Take(100).ToList();
+            }
+
+            if (itemsToBeNamed.Count > 0)
+            {
+                // run this async - it takes about 2 minutes
+                await DbItemNamerAsync(itemsToBeNamed);
+            }
         }
 
         async Task DbItemNamerAsync(List<WowItem> itemsToAdd)
@@ -174,7 +183,11 @@ namespace Feralas
                 try
                 {
                     itemm.Name = await WowApi.GetItemName(itemm.ItemId);
-                    LogMaker.Log($"{itemm.Name} added to the database.");
+                    if (itemm.Name.Length > 2)
+                    {
+                        LogMaker.Log($"{itemm.Name} added to the database.");
+                    }
+                    
                 }
                 catch
                 {
@@ -184,26 +197,28 @@ namespace Feralas
                 await Task.Delay(100);
             }
 
-
-            try
+            if (itemsToAdd.Count > 0)
             {
-                using (PostgresContext context = new())
+                try
                 {
-                    context.WowItems.UpdateRange(itemsToAdd);
-                    await context.SaveChangesAsync();
+                    using (PostgresContext context = new())
+                    {
+                        context.WowItems.UpdateRange(itemsToAdd);
+                        await context.SaveChangesAsync();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMaker.Log("_______________DbUpdater_______________");
-                LogMaker.Log("-----------NAMING FOR ITEMS FAILED");
-                LogMaker.Log($"{ex.Message}");
-                LogMaker.Log("_______________DbUpdater_______________");
-                if (ex.InnerException.ToString() != null)
+                catch (Exception ex)
                 {
-                    LogMaker.Log($"{ex.InnerException}");
+                    LogMaker.Log("_______________DbUpdater_______________");
+                    LogMaker.Log("-----------NAMING FOR ITEMS FAILED");
+                    LogMaker.Log($"{ex.Message}");
+                    LogMaker.Log("_______________DbUpdater_______________");
+                    if (ex.InnerException.ToString() != null)
+                    {
+                        LogMaker.Log($"{ex.InnerException}");
+                    }
+                    LogMaker.Log("_______________DbUpdater_______________");
                 }
-                LogMaker.Log("_______________DbUpdater_______________");
             }
         }
     }

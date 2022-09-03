@@ -74,5 +74,36 @@ public static class LogMaker
             await sw.WriteLineAsync($"{DateTime.UtcNow.ToLongTimeString()}:- {message} <br>");
         }
     }
+
+    public static async void LogToTable(string subject, string message)
+    {
+        if (message == logSpam)
+            return;
+
+        logSpam = message;
+
+        //Console.WriteLine(message);
+
+        GetTitle();
+
+        // This text is added only once to the file.
+        if (!File.Exists(path))
+        {
+            // Create a file to write to.
+            using (StreamWriter sw = File.CreateText(path))
+            {
+                sw.WriteLine("<!DOCTYPE html><html><head>");
+                sw.WriteLine($"<title>{title} - Log</title></head><body><table>");
+            }
+        }
+
+        // Log each new message
+        using (StreamWriter sw = File.AppendText(path))
+        {
+            await sw.WriteLineAsync($"<tr><td>{DateTime.UtcNow.ToLongTimeString()} </td>");
+            await sw.WriteLineAsync($"<td>{subject} </td>");
+            await sw.WriteLineAsync($"<td>{message} </td></tr>");
+        }
+    }
 }
 
