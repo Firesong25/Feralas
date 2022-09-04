@@ -13,12 +13,12 @@ namespace Feralas
 
             await Configurations.Init();
 
+            int count = 40;
             int y = 0;
             int z = 0;
 
-            RealmRunner kazzakEu = new("Kazzak", "dynamic-eu");
-            RealmRunner nordrassilEu = new("Nordrassil", "dynamic-eu");
-            RealmRunner anvilmarUs = new("Anvilmar", "dynamic-us");
+            LogMaker.LogToTable("Cleardragon", $"Auctions scans for {count} realms starting.");
+
             RealmRunner commoditiesUs = new("Commodities", "dynamic-us");
             RealmRunner commoditiesEu = new("Commodities", "dynamic-eu");
 
@@ -28,22 +28,20 @@ namespace Feralas
 
             //LogMaker.Log($"DELETE UNTIL THIS");
 
+            List<WowRealm> activeRealms = await CreateActiveRealmList(count);
+            RealmRunner realmRunner = new("", "");
+
             while (true)
             {
-                RealmRunner realmRunner = new("Kazzak", "dynamic-eu");
-                realmRunner.Run();
-                await Task.Delay(new TimeSpan(0, 5, 0));
-                realmRunner = new("Illidan", "dynamic-us");
-                realmRunner.Run();
-                await Task.Delay(new TimeSpan(0, 5, 0));
-                realmRunner = new("Anvilmar", "dynamic-us");
-                realmRunner.Run();
-                await Task.Delay(new TimeSpan(0, 5, 0));
-                realmRunner = new("Nordrassil", "dynamic-eu");
-                realmRunner.Run();
-                await Task.Delay(new TimeSpan(0, 5, 0));
+                foreach (WowRealm realm in activeRealms)
+                {
+                    realmRunner = new(realm.Name, realm.WowNamespace);
+                    realmRunner.Run();
+                    await Task.Delay(new TimeSpan(0, 2, 0));
+                }
+                
                 z++;
-                LogMaker.Log($"Auctions scan {z} complete.");
+                LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");
                 if (z % 5 == 0)
                 {
                     realmRunner = new("Commodities", "dynamic-us");
@@ -55,11 +53,65 @@ namespace Feralas
                     y++;
                     LogMaker.Log($"Commodities scan {y} complete.");
                 }
-                realmRunner = new("Free this memory", "please!");
 
             }
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");
+
+        }
+
+        public static async Task<List<WowRealm>> CreateActiveRealmList(int count)
+        {
+            await Task.Delay(1);
+            PostgresContext context = new();
+            List<WowRealm> stored = context.WowRealms.ToList();
+            List<WowRealm> active = new();
+            //I can't abandon the test realms for which I've already got data
+            WowRealm nordrassil = stored.FirstOrDefault(l => l.Name.ToLower() == "nordrassil" && l.WowNamespace.Contains("-eu"));
+            active.Add(nordrassil);
+            WowRealm kazzak = stored.FirstOrDefault(l => l.Id == 1305);
+            active.Add(kazzak);
+            WowRealm illidan = stored.FirstOrDefault(l => l.Name.ToLower() == "illidan" && l.WowNamespace.Contains("-us"));
+            active.Add(illidan);
+            WowRealm anvilmar = stored.FirstOrDefault(l => l.Name.ToLower() == "anvilmar" && l.WowNamespace.Contains("-us"));
+            active.Add(anvilmar);
+
+            List<WowRealm> usRealms = stored.Where(l => l.WowNamespace.Contains("-us") && l.ConnectedRealmId > 0).OrderBy(l => l.Id).ToList();
+            List<WowRealm> euRealms = stored.Where(l => l.WowNamespace.Contains("-eu") && l.ConnectedRealmId > 0).OrderBy(l => l.Id).ToList();
+
+            double half = count / 2;
+
+            int usCount = (int)Math.Floor(half);
+
+            foreach (WowRealm realm in usRealms)
+            {
+                WowRealm testy = active.FirstOrDefault(l => l.ConnectedRealmId == (int)realm.ConnectedRealmId);
+                if (testy == null)
+                {
+                    active.Add((WowRealm)realm);
+                }
+                if (active.Count >= half)
+                {
+                    break;
+                }
+            }
+
+            foreach (WowRealm realm in euRealms)
+            {
+                WowRealm testy = active.FirstOrDefault(l => l.ConnectedRealmId == (int)realm.ConnectedRealmId);
+                if (testy == null)
+                {
+                    active.Add((WowRealm)realm);
+                }
+
+                if (active.Count >= count)
+                {
+                    break;
+                }
+            }
+
+            return active;
+
 
         }
     }

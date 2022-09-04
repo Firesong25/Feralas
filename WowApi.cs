@@ -17,12 +17,13 @@ namespace Feralas
 
             if (tok.AccessToken == null)
             {
-                LogMaker.Log($"Access token refused.  Use the old one...");
+                LogMaker.LogToTable($"WowApi", $"Access token refused.  Use the old one...");
                 AccessToken = "USJTaraEEIsuGXHXvMnCOvDeJMVDh7ZSJg";
             }
             else
             {
                 AccessToken = tok.AccessToken.ToString();
+                LogMaker.LogToTable($"WowApi", AccessToken);
             }
 
             int connectedRealmId = 0;
@@ -47,17 +48,17 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.Log($"WowApi->GetConnectedRealmId ------------- {ex.Message}");
+                    LogMaker.LogToTable($"WowApi", $"WowApi->GetConnectedRealmId ------------- {ex.Message}");
                 }
 
                 if (connectedRealmId == 0)
                 {
-                    LogMaker.Log($"WowApi->GetConnectedRealmId -------------Failed to get connected realm id for {tag}.");
+                    LogMaker.LogToTable($"WowApi", $"WowApi->GetConnectedRealmId -------------Failed to get connected realm id for {tag}.");
                     return string.Empty;
                 }
                 else
                 {
-                    //LogMaker.Log($"Connected realm id for {tag} is {connectedRealmId}.");
+                    //LogMaker.LogToTable($"WowApi", $"Connected realm id for {tag} is {connectedRealmId}.");
                 }
             }
 
@@ -95,8 +96,8 @@ namespace Feralas
             }
             catch (Exception ex)
             {
-                LogMaker.Log("WowApi crash found.");
-                LogMaker.Log(ex.Message);
+                LogMaker.LogToTable($"WowApi", "WowApi crash found.");
+                LogMaker.LogToTable($"WowApi", ex.Message);
             }
 
             if (auctionsJson == string.Empty)
@@ -112,8 +113,8 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.Log("WowApi crash found again after 60 second delay.");
-                    LogMaker.Log(ex.Message);
+                    LogMaker.LogToTable($"WowApi", "WowApi crash found again after 60 second delay.");
+                    LogMaker.LogToTable($"WowApi", ex.Message);
                 }
             }
 
@@ -235,8 +236,8 @@ namespace Feralas
                 catch (Exception ex)
                 {
 
-                    LogMaker.Log($"------------------- Error getting access token------------------");
-                    LogMaker.Log($"{ex.Message}");
+                    LogMaker.LogToTable($"WowApi", $"------------------- Error getting access token------------------");
+                    LogMaker.LogToTable($"WowApi", $"{ex.Message}");
                     return null;
                 }
 

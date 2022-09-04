@@ -12,29 +12,48 @@ namespace Feralas
             PostgresContext context = new PostgresContext();
 
             await DbItemUpdaterAsync(context, auctions, tag);
-            await DbAuctionsUpdaterAsync(auctions, tag);
+            await DbAuctionsUpdaterAsync(context, auctions, tag);
         }
 
-        public async Task DbAuctionsUpdaterAsync(Listings auctions, string tag)
+        public async Task DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
         {
 
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
             List<WowAuction> storedAuctions = new();
             string PartitionKey = incoming.FirstOrDefault().PartitionKey;
-
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
-
-            using (PostgresContext postgresContext = new())
+            int countOfStoredAuctions = 0;
+            try
             {
-                storedAuctions = postgresContext.WowAuctions.Where(l =>
-                l.PartitionKey == PartitionKey &&
-                l.Sold == false &&
-                l.FirstSeenTime > cutOffTime).AsNoTracking().ToList();
+                countOfStoredAuctions = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey).Count();
+                if (countOfStoredAuctions > 0)
+                {
+                    storedAuctions = context.WowAuctions.Where(l =>
+                    l.PartitionKey == PartitionKey &&
+                    l.Sold == false &&
+                    l.FirstSeenTime > cutOffTime).ToList();
+                }
+                context.Dispose();
+            }
+            catch (Exception ex)
+            {
+
+                LogMaker.LogToTable($"Oops I can't count.", ex.Message);
             }
 
-            List<WowAuction> auctionsToAdd = incoming.Except(storedAuctions).ToList();
+
+
+            List<WowAuction> auctionsToAdd = new();
+            List<WowAuction> auctionsToUpdate = new();
+            List<WowAuction> absentListings = new();
+
+            auctionsToAdd = incoming.Except(storedAuctions).ToList();
+            auctionsToUpdate = incoming.Intersect(storedAuctions).ToList();
+            absentListings = storedAuctions.Except(incoming).ToList();
+
+
             // set right now as last time the auction was seen
             foreach (WowAuction auction in auctionsToAdd)
             {
@@ -44,7 +63,6 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
 
-            List<WowAuction> auctionsToUpdate = incoming.Intersect(storedAuctions).ToList();
 
             // set right now as last time the auction was seen
             foreach (WowAuction auction in auctionsToUpdate)
@@ -54,7 +72,6 @@ namespace Feralas
             }
 
             // many absent listings are sold
-            List<WowAuction> absentListings = storedAuctions.Except(incoming).ToList();
             foreach (WowAuction auction in absentListings)
             {
                 if (auction.ShortTimeLeftSeen == false)
@@ -67,7 +84,7 @@ namespace Feralas
             {
                 try
                 {
-                    LogMaker.Log($"{tag} {auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
+                    LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
 
                     // new auctions added
                     postgresContext.AddRange(auctionsToAdd);
@@ -76,14 +93,14 @@ namespace Feralas
 
                 catch (Exception ex)
                 {
-                    LogMaker.Log("_______________DbUpdater_______________");
-                    LogMaker.Log($"{ex.Message}");
-                    LogMaker.Log("_______________ADDING NEW AUCTIONS FAILED_______________");
+                    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater",$"{ex.Message}");
+                    LogMaker.LogToTable($"DbUpdater","_______________ADDING NEW AUCTIONS FAILED_______________");
                     if (ex.InnerException.ToString() != null)
                     {
-                        LogMaker.Log($"{ex.InnerException}");
+                        LogMaker.LogToTable($"DbUpdater",$"{ex.InnerException}");
                     }
-                    LogMaker.Log("_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
                 }
                 try
                 {
@@ -93,15 +110,15 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.Log($"_______________DbUpdater_______________");
-                    LogMaker.Log($"{ex.Message}");
-                    LogMaker.Log("_______________UPDATE FOR AUCTIONS FAILED_______________");
+                    LogMaker.LogToTable($"DbUpdater",$"_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater",$"{ex.Message}");
+                    LogMaker.LogToTable($"DbUpdater","_______________UPDATE FOR AUCTIONS FAILED_______________");
                     if (ex.InnerException.ToString() != null)
                     {
-                        LogMaker.Log($"_______________DbUpdater InnerException_______________");
-                        LogMaker.Log($"{ex.InnerException}");
+                        LogMaker.LogToTable($"DbUpdater",$"_______________DbUpdater InnerException_______________");
+                        LogMaker.LogToTable($"DbUpdater",$"{ex.InnerException}");
                     }
-                    LogMaker.Log("_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
                 }
 
                 try
@@ -112,14 +129,14 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.Log($"_______________DbUpdater_______________");
-                    LogMaker.Log($"{ex.Message}");
-                    LogMaker.Log("_______________UPDATE FOR EXPIRED AUCTIONS FAILED_______________");
+                    LogMaker.LogToTable($"DbUpdater",$"_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater",$"{ex.Message}");
+                    LogMaker.LogToTable($"DbUpdater","_______________UPDATE FOR EXPIRED AUCTIONS FAILED_______________");
                     if (ex.InnerException.ToString() != null)
                     {
-                        LogMaker.Log($"{ex.InnerException}");
+                        LogMaker.LogToTable($"DbUpdater",$"{ex.InnerException}");
                     }
-                    LogMaker.Log("_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
                 }
             }
         }
@@ -151,29 +168,29 @@ namespace Feralas
             }
             catch (Exception ex)
             {
-                LogMaker.Log("_______________DbUpdater_______________");
-                LogMaker.Log("UPDATE FOR ITEMS FAILED");
-                LogMaker.Log($"{ex.Message}");
-                LogMaker.Log("_______________DbUpdater_______________");
+                LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
+                LogMaker.LogToTable($"DbUpdater","UPDATE FOR ITEMS FAILED");
+                LogMaker.LogToTable($"DbUpdater",$"{ex.Message}");
+                LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
                 if (ex.InnerException.ToString() != null)
                 {
-                    LogMaker.Log($"{ex.InnerException}");
+                    LogMaker.LogToTable($"DbUpdater",$"{ex.InnerException}");
                 }
-                LogMaker.Log("_______________DbUpdater_______________");
+                LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
             }
 
-            List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).ToList();
+            //List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).ToList();
 
-            if (itemsToBeNamed.Count > 100)
-            {
-                itemsToBeNamed = itemsToBeNamed.Take(100).ToList();
-            }
+            //if (itemsToBeNamed.Count > 100)
+            //{
+            //    itemsToBeNamed = itemsToBeNamed.Take(100).ToList();
+            //}
 
-            if (itemsToBeNamed.Count > 0)
-            {
-                // run this async - it takes about 2 minutes
-                await DbItemNamerAsync(itemsToBeNamed);
-            }
+            //if (itemsToBeNamed.Count > 0)
+            //{
+            //    // run this async - it takes about 2 minutes
+            //    await DbItemNamerAsync(itemsToBeNamed);
+            //}
         }
 
         async Task DbItemNamerAsync(List<WowItem> itemsToAdd)
@@ -185,13 +202,13 @@ namespace Feralas
                     itemm.Name = await WowApi.GetItemName(itemm.ItemId);
                     if (itemm.Name.Length > 2)
                     {
-                        LogMaker.Log($"{itemm.Name} added to the database.");
+                        LogMaker.LogToTable($"DbUpdater",$"{itemm.Name} added to the database.");
                     }
                     
                 }
                 catch
                 {
-                    LogMaker.Log($"Blizzard API timeout");
+                    LogMaker.LogToTable($"DbUpdater",$"Blizzard API timeout");
                     await Task.Delay(1000 * 60);
                 }
                 await Task.Delay(100);
@@ -209,15 +226,15 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.Log("_______________DbUpdater_______________");
-                    LogMaker.Log("-----------NAMING FOR ITEMS FAILED");
-                    LogMaker.Log($"{ex.Message}");
-                    LogMaker.Log("_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater","-----------NAMING FOR ITEMS FAILED");
+                    LogMaker.LogToTable($"DbUpdater",$"{ex.Message}");
+                    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
                     if (ex.InnerException.ToString() != null)
                     {
-                        LogMaker.Log($"{ex.InnerException}");
+                        LogMaker.LogToTable($"DbUpdater",$"{ex.InnerException}");
                     }
-                    LogMaker.Log("_______________DbUpdater_______________");
+                    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
                 }
             }
         }
