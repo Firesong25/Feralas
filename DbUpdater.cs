@@ -84,7 +84,7 @@ namespace Feralas
             {
                 try
                 {
-                    LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions.");
+                    LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold{auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions to delete.");
 
                     // new auctions added
                     postgresContext.AddRange(auctionsToAdd);
