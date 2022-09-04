@@ -13,7 +13,7 @@ namespace Feralas
 
             await Configurations.Init();
 
-            int count = 10;
+            int count = 20;
             int pollingInterval = 3;
             int y = 0;
             int z = 0;
