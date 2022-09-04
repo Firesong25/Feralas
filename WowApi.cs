@@ -57,7 +57,7 @@ namespace Feralas
                 }
                 else
                 {
-                    LogMaker.LogToTable($"WowApi", $"Connected realm id for {tag} is {connectedRealmId}.");
+                    //LogMaker.LogToTable($"WowApi", $"Connected realm id for {tag} is {connectedRealmId}.");
                 }
             }
 

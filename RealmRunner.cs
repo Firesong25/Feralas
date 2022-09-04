@@ -39,11 +39,11 @@ namespace Feralas
                 }                
 
 
-                LogMaker.LogToTable($"RealmRunner",$"{tag} Auction house scan.");
+                //LogMaker.LogToTable($"RealmRunner",$"{tag} Auction house scan.");
                 string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace, tag);
                 if (auctionsJson != string.Empty)
                 {
-                    LogMaker.LogToTable($"RealmRunner", $"The realm data for {tag} namespace is downloaded.");
+                    //LogMaker.LogToTable($"RealmRunner", $"The realm data for {tag} namespace is downloaded.");
                     DbUpdater db = new();
                     await db.DoUpdatesAsync(auctionsJson, tag);
                     LastUpdate = DateTime.UtcNow;

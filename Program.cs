@@ -13,7 +13,8 @@ namespace Feralas
 
             await Configurations.Init();
 
-            int count = 40;
+            int count = 133;
+            int pollingInterval = 3;
             int y = 0;
             int z = 0;
 
@@ -37,22 +38,19 @@ namespace Feralas
                 {
                     realmRunner = new(realm.Name, realm.WowNamespace);
                     realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, 2, 0));
+                    await Task.Delay(new TimeSpan(0, pollingInterval, 0));
                 }
-                
+
+                realmRunner = new("Commodities", "dynamic-us");
+                realmRunner.Run();
+                //commodities runs take twice as long
+                await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
+                realmRunner = new("Commodities", "dynamic-eu");
+                realmRunner.Run();
+                await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
+
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");
-                if (z % 5 == 0)
-                {
-                    realmRunner = new("Commodities", "dynamic-us");
-                    realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, 5, 0));
-                    realmRunner = new("Commodities", "dynamic-eu");
-                    realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, 5, 0));
-                    y++;
-                    LogMaker.Log($"Commodities scan {y} complete.");
-                }
 
             }
 
