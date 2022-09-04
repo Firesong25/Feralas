@@ -23,20 +23,16 @@ namespace Feralas
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
             List<WowAuction> storedAuctions = new();
+            List<WowAuction> ancientListings = new();
             string PartitionKey = incoming.FirstOrDefault().PartitionKey;
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
-            int countOfStoredAuctions = 0;
+
+
             try
             {
-                countOfStoredAuctions = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey).Count();
-                if (countOfStoredAuctions > 0)
-                {
-                    storedAuctions = context.WowAuctions.Where(l =>
-                    l.PartitionKey == PartitionKey &&
-                    l.Sold == false &&
-                    l.FirstSeenTime > cutOffTime).ToList();
-                }
+                ancientListings = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey && l.FirstSeenTime == cutOffTime).ToList();
+                storedAuctions = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
                 context.Dispose();
             }
             catch (Exception ex)
@@ -86,10 +82,13 @@ namespace Feralas
 
             LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions to delete.");
 
+
+
             using (PostgresContext postgresContext = new())
             {
                 try
                 {
+                    postgresContext.RemoveRange(ancientListings);
                     postgresContext.RemoveRange(absentListings);
                     postgresContext.AddRange(auctionsToAdd);
                     postgresContext.UpdateRange(soldListings);
