@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace Feralas
 {
@@ -45,13 +46,10 @@ namespace Feralas
 
 
 
-            List<WowAuction> auctionsToAdd = new();
-            List<WowAuction> auctionsToUpdate = new();
-            List<WowAuction> absentListings = new();
-
-            auctionsToAdd = incoming.Except(storedAuctions).ToList();
-            auctionsToUpdate = incoming.Intersect(storedAuctions).ToList();
-            absentListings = storedAuctions.Except(incoming).ToList();
+            List<WowAuction> auctionsToAdd = incoming.Except(storedAuctions).ToList();
+            List<WowAuction> auctionsToUpdate = incoming.Intersect(storedAuctions).ToList();
+            List<WowAuction> absentListings = storedAuctions.Except(incoming).ToList();
+            List<WowAuction> soldListings = new();
 
 
             // set right now as last time the auction was seen
@@ -77,6 +75,8 @@ namespace Feralas
                 if (auction.ShortTimeLeftSeen == false)
                 {
                     auction.Sold = true;
+                    soldListings.Add(auction);
+                    absentListings.Remove(auction);
                 }
             }
 
@@ -106,6 +106,7 @@ namespace Feralas
                 {
                     // updating auctions
                     postgresContext.UpdateRange(auctionsToUpdate);
+                    postgresContext.Update(soldListings);
                     await postgresContext.SaveChangesAsync();
                 }
                 catch (Exception ex)
@@ -123,8 +124,8 @@ namespace Feralas
 
                 try
                 {
-                    // marking sold auctions
-                    postgresContext.UpdateRange(absentListings);
+                    // delete expired auctions as we are running out of diskspace.
+                    postgresContext.RemoveRange(absentListings);
                     await postgresContext.SaveChangesAsync();
                 }
                 catch (Exception ex)
