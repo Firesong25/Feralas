@@ -14,6 +14,7 @@ namespace Feralas
 
             await DbItemUpdaterAsync(context, auctions, tag);
             await DbAuctionsUpdaterAsync(context, auctions, tag);
+            Task backgroundNamer = DbItemNamerAsync(context);
         }
 
         public async Task DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
@@ -184,7 +185,6 @@ namespace Feralas
                     itemsToAdd.Add(item);
                 }
 
-
                 trialItem = new();
             }
 
@@ -206,30 +206,27 @@ namespace Feralas
                 LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
             }
 
-            //List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).ToList();
 
-            //if (itemsToBeNamed.Count > 100)
-            //{
-            //    itemsToBeNamed = itemsToBeNamed.Take(100).ToList();
-            //}
-
-            //if (itemsToBeNamed.Count > 0)
-            //{
-            //    // run this async - it takes about 2 minutes
-            //    await DbItemNamerAsync(itemsToBeNamed);
-            //}
         }
 
-        async Task DbItemNamerAsync(List<WowItem> itemsToAdd)
+        async Task DbItemNamerAsync(PostgresContext context)
         {
-            foreach (WowItem itemm in itemsToAdd)
+            List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).ToList();
+
+            if (itemsToBeNamed.Count > 100)
+            {
+                itemsToBeNamed = itemsToBeNamed.Take(100).ToList();
+            }
+
+
+            foreach (WowItem itemm in itemsToBeNamed)
             {
                 try
                 {
                     itemm.Name = await WowApi.GetItemName(itemm.ItemId);
                     if (itemm.Name.Length > 2)
                     {
-                        LogMaker.LogToTable($"DbUpdater", $"{itemm.Name} added to the database.");
+                        // LogMaker.LogToTable($"DbUpdater", $"{itemm.Name} added to the database.");
                     }
 
                 }
@@ -241,15 +238,12 @@ namespace Feralas
                 await Task.Delay(100);
             }
 
-            if (itemsToAdd.Count > 0)
+            if (itemsToBeNamed.Count > 0)
             {
                 try
                 {
-                    using (PostgresContext context = new())
-                    {
-                        context.WowItems.UpdateRange(itemsToAdd);
-                        await context.SaveChangesAsync();
-                    }
+                    context.WowItems.UpdateRange(itemsToBeNamed);
+                    await context.SaveChangesAsync();
                 }
                 catch (Exception ex)
                 {

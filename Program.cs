@@ -12,16 +12,28 @@ namespace Feralas
                 File.Delete("log.html");
 
             await Configurations.Init();
+            Task backgroundTask;
 
             int count = 20;
             int pollingInterval = 3;
-            int y = 0;
             int z = 0;
 
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for {count} realms starting.");
 
             RealmRunner commoditiesUs = new("Commodities", "dynamic-us");
             RealmRunner commoditiesEu = new("Commodities", "dynamic-eu");
+
+            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            if (isLinux)
+            {
+                var freeBytes = new DriveInfo("/var/lib/postgresql").AvailableFreeSpace;
+                if (freeBytes / 1000000000 < 5)
+                {
+                    LogMaker.LogToTable("Cleardragon", "We are out of disk space. Stopping execution.");
+                    Environment.Exit(-1);
+                }
+            }
+
 
 
             // Test area
@@ -37,16 +49,16 @@ namespace Feralas
                 foreach (WowRealm realm in activeRealms)
                 {
                     realmRunner = new(realm.Name, realm.WowNamespace);
-                    realmRunner.Run();
+                    backgroundTask = realmRunner.Run();
                     await Task.Delay(new TimeSpan(0, pollingInterval, 0));
                 }
 
                 realmRunner = new("Commodities", "dynamic-us");
-                realmRunner.Run();
+                backgroundTask = realmRunner.Run();
                 //commodities runs take twice as long
                 await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
                 realmRunner = new("Commodities", "dynamic-eu");
-                realmRunner.Run();
+                backgroundTask = realmRunner.Run();
                 await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
 
                 z++;

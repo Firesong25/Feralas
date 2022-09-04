@@ -73,7 +73,7 @@ namespace Feralas
             // Based on answers https://stackoverflow.com/questions/9993883/convert-milliseconds-to-human-readable-time-lapse
             TimeSpan t = TimeSpan.FromMilliseconds(ms);
             if (t.Hours > 0) return $"{t.Hours} hours {t.Minutes} minutes {t.Seconds} seconds {t.Milliseconds} milliseconds";
-            else if (t.Minutes > 0) return $"{t.Minutes}minutes {t.Seconds} seconds {t.Milliseconds} milliseconds";
+            else if (t.Minutes > 0) return $"{t.Minutes} minutes {t.Seconds} seconds {t.Milliseconds} milliseconds";
             else if (t.Seconds > 0) return $"{t.Seconds} seconds {t.Milliseconds} milliseconds";
             else return $"{t.Milliseconds} milliseconds";
         }
