@@ -79,13 +79,15 @@ namespace Feralas
                 }
             }
 
+            //LogMaker.LogToTable($"{tag}", $"{soldListings.Count} to mark sold among {absentListings.Count} expired or sold auctions.");
+
             absentListings = absentListings.Except(soldListings).ToList();
 
             using (PostgresContext postgresContext = new())
             {
                 try
                 {
-                    LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold{auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions to delete.");
+                    LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions to delete.");
 
                     // new auctions added
                     postgresContext.AddRange(auctionsToAdd);
