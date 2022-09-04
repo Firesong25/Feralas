@@ -75,10 +75,11 @@ namespace Feralas
                 if (auction.ShortTimeLeftSeen == false)
                 {
                     auction.Sold = true;
-                    soldListings.Add(auction);
-                    absentListings.Remove(auction);
+                    soldListings.Add(auction);                    
                 }
             }
+
+            absentListings = absentListings.Except(soldListings).ToList();
 
             using (PostgresContext postgresContext = new())
             {
