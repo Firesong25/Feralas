@@ -23,7 +23,6 @@ namespace Feralas
             else
             {
                 AccessToken = tok.AccessToken.ToString();
-                LogMaker.LogToTable($"WowApi", AccessToken);
             }
 
             int connectedRealmId = 0;
@@ -58,7 +57,7 @@ namespace Feralas
                 }
                 else
                 {
-                    //LogMaker.LogToTable($"WowApi", $"Connected realm id for {tag} is {connectedRealmId}.");
+                    LogMaker.LogToTable($"WowApi", $"Connected realm id for {tag} is {connectedRealmId}.");
                 }
             }
 
