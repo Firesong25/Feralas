@@ -23,19 +23,6 @@ namespace Feralas
             RealmRunner commoditiesUs = new("Commodities", "dynamic-us");
             RealmRunner commoditiesEu = new("Commodities", "dynamic-eu");
 
-            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-            if (isLinux)
-            {
-                var freeBytes = new DriveInfo("/var/lib/postgresql").AvailableFreeSpace;
-                if (freeBytes / 1000000000 < 5)
-                {
-                    LogMaker.LogToTable("Cleardragon", "We are out of disk space. Stopping execution.");
-                    Environment.Exit(-1);
-                }
-            }
-
-
-
             // Test area
             //LogMaker.Log($"DELETE AFTER THIS");
 
@@ -46,6 +33,17 @@ namespace Feralas
 
             while (true)
             {
+                bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                if (isLinux)
+                {
+                    var freeBytes = new DriveInfo("/var/lib/postgresql").AvailableFreeSpace;
+                    if (freeBytes / 1000000000 < 5)
+                    {
+                        LogMaker.LogToTable("Cleardragon", "We are out of disk space. Stopping execution.");
+                        Environment.Exit(-1);
+                    }
+                }
+
                 foreach (WowRealm realm in activeRealms)
                 {
                     realmRunner = new(realm.Name, realm.WowNamespace);
