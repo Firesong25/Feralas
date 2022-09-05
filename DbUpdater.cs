@@ -31,7 +31,7 @@ namespace Feralas
 
             try
             {
-                ancientListings = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey && l.FirstSeenTime == cutOffTime).ToList();
+                ancientListings = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey && l.FirstSeenTime < cutOffTime).ToList();
                 storedAuctions = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
                 context.Dispose();
             }
@@ -80,7 +80,16 @@ namespace Feralas
 
             absentListings = absentListings.Except(soldListings).ToList();
 
-            LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired or sold auctions to delete.");
+            if (absentListings.Count == 0)
+            {
+                LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {ancientListings.Count} auctions to delete.");
+            }
+            else
+            {
+                LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete.");
+            }
+
+
 
 
 
@@ -101,70 +110,6 @@ namespace Feralas
                     LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
                     LogMaker.LogToTable($"DbUpdater", "_______________UPDATE FAILED_______________");
                 }
-                //try
-                //{
-                //    // delete expired auctions as we are running out of diskspace.  Do it first to save time.
-
-                //}
-                //catch (Exception ex)
-                //{
-                //    LogMaker.LogToTable($"DbUpdater", $"_______________DbUpdater_______________");
-                //    LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
-                //    LogMaker.LogToTable($"DbUpdater", "_______________DELETE FOR EXPIRED AUCTIONS FAILED_______________");
-                //    if (ex.InnerException.ToString() != null)
-                //    {
-                //        LogMaker.LogToTable($"DbUpdater", $"{ex.InnerException}");
-                //    }
-                //    LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
-                //}
-
-                //try
-                //{
-                //    // new auctions added
-                //    postgresContext.AddRange(auctionsToAdd);
-                //    await postgresContext.SaveChangesAsync();
-                //}
-
-                //catch (Exception ex)
-                //{
-                //    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
-                //    LogMaker.LogToTable($"DbUpdater",$"{ex.Message}");
-                //    LogMaker.LogToTable($"DbUpdater","_______________ADDING NEW AUCTIONS FAILED_______________");
-                //    if (ex.InnerException.ToString() != null)
-                //    {
-                //        LogMaker.LogToTable($"DbUpdater",$"{ex.InnerException}");
-                //    }
-                //    LogMaker.LogToTable($"DbUpdater","_______________DbUpdater_______________");
-                //}
-
-                //try
-                //{
-                //    // updating auctions
-                //    postgresContext.UpdateRange(soldListings);
-                //    await postgresContext.SaveChangesAsync();
-                //}
-                //catch (Exception ex)
-                //{
-                //    LogMaker.LogToTable($"DbUpdater", $"_______________DbUpdater_______________");
-                //    LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
-                //    LogMaker.LogToTable($"DbUpdater", "_______________UPDATE FOR SOLD AUCTIONS FAILED_______________");
-                //}
-
-                //try
-                //{
-                //    // updating auctions
-
-                //    postgresContext.UpdateRange(auctionsToUpdate);
-                //    await postgresContext.SaveChangesAsync();
-                //}
-                //    catch (Exception ex)
-                //{
-                //    LogMaker.LogToTable($"DbUpdater", $"_______________DbUpdater_______________");
-                //    LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
-                //    LogMaker.LogToTable($"DbUpdater", "_______________UPDATE FOR AUCTIONS FAILED_______________");
-                //}
-
-
             }
         }
 
