@@ -7,7 +7,9 @@ namespace Feralas
         public static string BlizzardClientId { get; private set; }
         public static string BlizzardClientPassword { get; private set; }
 
-        public static string PostgresConnectionString { get; private set; }
+        public static string DigitalOceanConnectionString { get; private set; }
+
+        public static string OVHConnectionString { get; private set; }
         public static string CosmosConnectionString { get; private set; }
 
         public static async Task Init()
@@ -15,16 +17,23 @@ namespace Feralas
             string[] paths = { Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Data", "Configurations.txt" };
             string configurationFile = Path.Combine(paths);
 
-            PostgresConnectionString = string.Empty;
+            DigitalOceanConnectionString = string.Empty;
+            OVHConnectionString = string.Empty;
 
             string serverName = "cleardragon.com";
+            string ovhServerName = "328e252d";
 
             string[] configs = File.ReadAllLines(configurationFile);
             foreach (string config in configs)
             {
-                if (PostgresConnectionString == string.Empty && config.Contains(serverName))
+                if (DigitalOceanConnectionString == string.Empty && config.Contains(serverName))
                 {
-                    PostgresConnectionString = config;
+                    DigitalOceanConnectionString = config;
+                }
+
+                if (OVHConnectionString == string.Empty && config.Contains(ovhServerName))
+                {
+                    OVHConnectionString = config;
                 }
 
                 if (CosmosConnectionString == string.Empty && config.Contains(serverName))

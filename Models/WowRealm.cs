@@ -18,4 +18,13 @@ namespace Feralas
         [Column("activley_scanning")]
         public bool IsActivelyScanning { get; set; }
     }
+
+    public class OldRealm
+    {
+        [Key]
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string WowNamespace { get; set; } = null!;
+        public int? ConnectedRealmId { get; set; }
+    }
 }
