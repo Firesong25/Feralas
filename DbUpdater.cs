@@ -28,11 +28,12 @@ namespace Feralas
             int connectedRealmId = incoming.FirstOrDefault().ConnectedRealmId;
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
+            DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7,0,0,0);
 
 
             try
             {
-                ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
+                ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
                 storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
                 context.Dispose();
             }

@@ -14,8 +14,8 @@ namespace Feralas
             await Configurations.Init();
             Task backgroundTask;
 
-            int count = 4;
-            int pollingInterval = 3;
+            int count = 14;
+            int pollingInterval = 2;
             int z = 0;
 
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for {count} realms starting.");
@@ -62,12 +62,6 @@ namespace Feralas
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");
                 
-                if (z > 2)
-                {
-                    LogMaker.LogToTable("Cleardragon", "Test complete.  Closing down.");
-                    Environment.Exit(0);
-                }
-
             }
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");

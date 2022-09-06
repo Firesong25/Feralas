@@ -38,11 +38,11 @@ namespace Feralas
             if (other is null)
                 return false;
 
-            return Id == other.Id;
+            return AuctionId == other.AuctionId && ItemId == other.ItemId;
         }
 
         public override bool Equals(object obj) => Equals(obj as WowAuction);
-        public override int GetHashCode() => Id.GetHashCode();
+        public override int GetHashCode() => (AuctionId, ItemId).GetHashCode();
 
     }
 
