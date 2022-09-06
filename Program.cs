@@ -14,7 +14,7 @@ namespace Feralas
             await Configurations.Init();
             Task backgroundTask;
 
-            int count = 20;
+            int count = 40;
             int pollingInterval = 3;
             int z = 0;
 
@@ -118,7 +118,7 @@ namespace Feralas
                 }
             }
 
-            return active;
+            return active.OrderBy(l => l.Name).ToList();
 
 
         }

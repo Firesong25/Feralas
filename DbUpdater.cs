@@ -14,7 +14,7 @@ namespace Feralas
 
             await DbItemUpdaterAsync(context, auctions, tag);
             await DbAuctionsUpdaterAsync(context, auctions, tag);
-            Task backgroundNamer = DbItemNamerAsync(context);
+            //Task backgroundNamer = DbItemNamerAsync(context);
         }
 
         public async Task DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
@@ -25,14 +25,15 @@ namespace Feralas
             List<WowAuction> storedAuctions = new();
             List<WowAuction> ancientListings = new();
             string PartitionKey = incoming.FirstOrDefault().PartitionKey;
+            int connectedRealmId = incoming.FirstOrDefault().ConnectedRealmId;
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
 
 
             try
             {
-                ancientListings = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey && l.FirstSeenTime < cutOffTime).ToList();
-                storedAuctions = context.WowAuctions.Where(l => l.PartitionKey == PartitionKey && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
+                ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
+                storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
                 context.Dispose();
             }
             catch (Exception ex)

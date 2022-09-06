@@ -1,39 +1,49 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-/*
- https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable.except?redirectedfrom=MSDN&view=net-6.0#System_Linq_Enumerable_Except__1_System_Collections_Generic_IEnumerable___0__System_Collections_Generic_IEnumerable___0__
- 
- */
-#nullable enable
 namespace Feralas
 {
-    public class WowAuction : IEquatable<WowAuction> //
+    [Table("wow_auctions")]
+    public class WowAuction : IEquatable<WowAuction>
     {
-
-        public string PartitionKey { get; set; }
-        public int AuctionId { get; set; }
-        public DateTime FirstSeenTime { get; set; }
-        public DateTime LastSeenTime { get; set; }
-        public bool ShortTimeLeftSeen { get; set; }
-        public bool Sold { get; set; }
-        public int Quantity { get; set; }
-        public int ItemId { get; set; }
-        public long UnitPrice { get; set; }
-        public long? Buyout { get; set; }
-
+        [Column("id")]
         [Key]
         public Guid Id { get; set; }
+        [Column("partition_key")]
+        public string PartitionKey { get; set; }
+        [Column("connected_realm_id")]
+        public int ConnectedRealmId { get; set; }
+        [Column("auction_id")]
+        public int AuctionId { get; set; }
+        [Column("first_seen_time")]
+        public DateTime FirstSeenTime { get; set; }
+        [Column("last_seen_time")]
+        public DateTime LastSeenTime { get; set; }
+        [Column("short_time_left_seen")]
+        public bool ShortTimeLeftSeen { get; set; }
+
+        [Column("sold")]
+        public bool Sold { get; set; }
+        [Column("quantity")]
+        public int Quantity { get; set; }
+        [Column("item_id")]
+        public int ItemId { get; set; }
+        [Column("unit_price")]
+        public long UnitPrice { get; set; }
+        [Column("buyout")]
+        public long? Buyout { get; set; }
 
         public bool Equals(WowAuction other)
         {
             if (other is null)
                 return false;
 
-            return AuctionId == other.AuctionId && ItemId == other.ItemId;
+            return Id == other.Id;
         }
 
         public override bool Equals(object obj) => Equals(obj as WowAuction);
-        public override int GetHashCode() => (AuctionId, ItemId).GetHashCode();
+        public override int GetHashCode() => Id.GetHashCode();
+
     }
 
 }

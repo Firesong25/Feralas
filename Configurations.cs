@@ -1,4 +1,6 @@
-﻿namespace Feralas
+﻿using System.Runtime.InteropServices;
+
+namespace Feralas
 {
     public static class Configurations
     {
@@ -30,16 +32,34 @@
                     CosmosConnectionString = config;
                 }
 
-                if (BlizzardClientId == null && config.Contains("clientId="))
+                bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                if (isLinux)
                 {
-                    string[] configStrings = config.Split('=');
-                    BlizzardClientId = configStrings[1];
-                }
+                    if (BlizzardClientId == null && config.Contains("linux_clientId="))
+                    {
+                        string[] configStrings = config.Split('=');
+                        BlizzardClientId = configStrings[1].Trim();
+                    }
 
-                if (BlizzardClientPassword == null && config.Contains("clientSecret="))
+                    if (BlizzardClientPassword == null && config.Contains("linux_clientSecret="))
+                    {
+                        string[] configStrings = config.Split('=');
+                        BlizzardClientPassword = configStrings[1].Trim();
+                    }
+                }
+                else
                 {
-                    string[] configStrings = config.Split('=');
-                    BlizzardClientPassword = configStrings[1];
+                    if (BlizzardClientId == null && config.Contains("clientId="))
+                    {
+                        string[] configStrings = config.Split('=');
+                        BlizzardClientId = configStrings[1].Trim();
+                    }
+
+                    if (BlizzardClientPassword == null && config.Contains("clientSecret="))
+                    {
+                        string[] configStrings = config.Split('=');
+                        BlizzardClientPassword = configStrings[1].Trim();
+                    }
                 }
             }
             await Task.Delay(1); // stop Linux warnings
