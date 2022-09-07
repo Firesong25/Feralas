@@ -17,7 +17,7 @@ namespace Feralas
 
             if (tok.AccessToken == null)
             {
-                LogMaker.LogToTable($"WowApi", $"Access token refused.  Use the old one...");
+                //LogMaker.LogToTable($"WowApi", $"Access token refused.  Use the old one...");
                 AccessToken = "USJTaraEEIsuGXHXvMnCOvDeJMVDh7ZSJg";
             }
             else

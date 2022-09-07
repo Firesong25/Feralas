@@ -71,13 +71,14 @@ namespace Feralas
                 auction.FirstSeenTime = DateTime.SpecifyKind(auction.FirstSeenTime, DateTimeKind.Utc);
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
+                auction.FirstSeenTime = auction.LastSeenTime;
             }
 
             List<WowAuction> broken = auctionsToAdd.Where(l => l.FirstSeenTime < cutOffTime).ToList();
             if (broken.Count > 0)
             {
 
-                LogMaker.LogToTable($"Klaxon!", "{tag} has broken listings.");
+                LogMaker.LogToTable($"Klaxon!", $"{tag} has broken listings.");
                 return;
             }
 
