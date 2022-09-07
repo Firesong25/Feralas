@@ -120,18 +120,18 @@ namespace Feralas
                 context.UpdateRange(soldListings);
                 context.UpdateRange(auctionsToUpdate);
                 await context.SaveChangesAsync();
-                List<WowAuction> ancientAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
-                if (ancientAuctions.Count > 0)
-                {
-                    Stopwatch sw = Stopwatch.StartNew();
-                    foreach (WowAuction auction in ancientAuctions)
-                    {
-                        auction.FirstSeenTime = DateTime.UtcNow;
-                    }
-                    context.WowAuctions.UpdateRange(ancientAuctions);
-                    await context.SaveChangesAsync();
-                    LogMaker.LogToTable($"{tag}", $"{ancientAuctions.Count} broken listings fixed.");
-                }
+                //List<WowAuction> ancientAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
+                //if (ancientAuctions.Count > 0)
+                //{
+                //    Stopwatch sw = Stopwatch.StartNew();
+                //    foreach (WowAuction auction in ancientAuctions)
+                //    {
+                //        auction.FirstSeenTime = DateTime.UtcNow;
+                //    }
+                //    context.WowAuctions.UpdateRange(ancientAuctions);
+                //    await context.SaveChangesAsync();
+                //    LogMaker.LogToTable($"{tag}", $"{ancientAuctions.Count} broken listings fixed.");
+                //}
             }
             catch (Exception ex)
             {

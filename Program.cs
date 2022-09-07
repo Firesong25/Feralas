@@ -15,7 +15,7 @@ namespace Feralas
             await Configurations.Init();
             Task backgroundTask;
 
-            int count = 4;
+            int count = 25;
             int pollingInterval = 2;
             int z = 0;
 
