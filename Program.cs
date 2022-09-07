@@ -26,7 +26,7 @@ namespace Feralas
 
             // Test area
             //LogMaker.Log($"DELETE AFTER THIS");
-            //PostgresContext context = new();
+            
 
             //LogMaker.Log($"DELETE UNTIL THIS");
 

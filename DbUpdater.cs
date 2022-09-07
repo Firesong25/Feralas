@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Feralas
 {
@@ -12,7 +13,7 @@ namespace Feralas
 
             PostgresContext context = new PostgresContext();
 
-            await DbItemUpdaterAsync(context, auctions, tag);
+            DbItemUpdaterAsync(context, auctions, tag);
             await DbAuctionsUpdaterAsync(context, auctions, tag);
             //Task backgroundNamer = DbItemNamerAsync(context);
         }
@@ -39,13 +40,11 @@ namespace Feralas
                 storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
                 if (ancientListings.Count > 0)
                 {
-                    LogMaker.LogToTable($"Klaxon!", "{tag} has broken ancient listings.");
-                    return;
+                    LogMaker.LogToTable($"Klaxon!", "${tag} has broken ancient listings.");
                 }
                 if (reallyAncientListings.Count > 0)
                 {
-                    LogMaker.LogToTable($"Klaxon!", "{tag} has broken ancient listings.");
-                    return;
+                    LogMaker.LogToTable($"Klaxon!", $"{tag} has broken ancient listings.");
                 }
                 context.Dispose();
             }
@@ -74,13 +73,6 @@ namespace Feralas
                 auction.FirstSeenTime = auction.LastSeenTime;
             }
 
-            List<WowAuction> broken = auctionsToAdd.Where(l => l.FirstSeenTime < cutOffTime).ToList();
-            if (broken.Count > 0)
-            {
-
-                LogMaker.LogToTable($"Klaxon!", $"{tag} has broken listings.");
-                return;
-            }
 
             // many absent listings are sold
             foreach (WowAuction auction in absentListings)
@@ -127,6 +119,18 @@ namespace Feralas
                     postgresContext.UpdateRange(soldListings);
                     postgresContext.UpdateRange(auctionsToUpdate);
                     await postgresContext.SaveChangesAsync();
+                    List<WowAuction> ancientAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
+                    if (ancientAuctions.Count > 0)
+                    {
+                        Stopwatch sw = Stopwatch.StartNew();
+                        foreach (WowAuction auction in ancientAuctions)
+                        {
+                            auction.FirstSeenTime = DateTime.UtcNow;
+                        }
+                        context.WowAuctions.UpdateRange(ancientAuctions);
+                        await context.SaveChangesAsync();
+                        LogMaker.LogToTable($"{tag}", $"{ancientAuctions.Count} broken listings fixed.");
+                    }
                 }
                 catch (Exception ex)
                 {
