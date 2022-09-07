@@ -30,7 +30,7 @@ namespace Feralas
             int connectedRealmId = incoming.FirstOrDefault().ConnectedRealmId;
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
-            DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7,0,0,0);
+            DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7, 0, 0, 0);
 
 
             try
@@ -40,7 +40,7 @@ namespace Feralas
                 storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
                 if (ancientListings.Count > 0)
                 {
-                    LogMaker.LogToTable($"Klaxon!", "${tag} has broken ancient listings.");
+                    LogMaker.LogToTable($"Klaxon!", $"{tag} has broken ancient listings.");
                 }
                 if (reallyAncientListings.Count > 0)
                 {
@@ -58,7 +58,7 @@ namespace Feralas
 
 
             List<WowAuction> auctionsToAdd = incoming.Except(storedAuctions).ToList();
-            List<WowAuction> auctionsToUpdate = incoming.Intersect(storedAuctions).ToList();
+            List<WowAuction> auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
             List<WowAuction> absentListings = storedAuctions.Except(incoming).ToList();
             List<WowAuction> soldListings = new();
 
@@ -94,6 +94,8 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
 
+            WowAuction auction1 = auctionsToUpdate.FirstOrDefault(l => l.FirstSeenTime < cutOffTime);
+
             absentListings = absentListings.Except(soldListings).ToList();
 
             if (absentListings.Count == 0)
@@ -109,36 +111,35 @@ namespace Feralas
 
 
 
-            using (PostgresContext postgresContext = new())
+
+            try
             {
-                try
+                //context.RemoveRange(ancientListings);
+                //context.RemoveRange(absentListings);
+                context.AddRange(auctionsToAdd);
+                context.UpdateRange(soldListings);
+                context.UpdateRange(auctionsToUpdate);
+                await context.SaveChangesAsync();
+                List<WowAuction> ancientAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
+                if (ancientAuctions.Count > 0)
                 {
-                    //postgresContext.RemoveRange(ancientListings);
-                    //postgresContext.RemoveRange(absentListings);
-                    postgresContext.AddRange(auctionsToAdd);
-                    postgresContext.UpdateRange(soldListings);
-                    postgresContext.UpdateRange(auctionsToUpdate);
-                    await postgresContext.SaveChangesAsync();
-                    List<WowAuction> ancientAuctions = postgresContext.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
-                    if (ancientAuctions.Count > 0)
+                    Stopwatch sw = Stopwatch.StartNew();
+                    foreach (WowAuction auction in ancientAuctions)
                     {
-                        Stopwatch sw = Stopwatch.StartNew();
-                        foreach (WowAuction auction in ancientAuctions)
-                        {
-                            auction.FirstSeenTime = DateTime.UtcNow;
-                        }
-                        postgresContext.WowAuctions.UpdateRange(ancientAuctions);
-                        await postgresContext.SaveChangesAsync();
-                        LogMaker.LogToTable($"{tag}", $"{ancientAuctions.Count} broken listings fixed.");
+                        auction.FirstSeenTime = DateTime.UtcNow;
                     }
-                }
-                catch (Exception ex)
-                {
-                    LogMaker.LogToTable($"DbUpdater", $"_______________DbUpdater_______________");
-                    LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
-                    LogMaker.LogToTable($"DbUpdater", "_______________UPDATE FAILED_______________");
+                    context.WowAuctions.UpdateRange(ancientAuctions);
+                    await context.SaveChangesAsync();
+                    LogMaker.LogToTable($"{tag}", $"{ancientAuctions.Count} broken listings fixed.");
                 }
             }
+            catch (Exception ex)
+            {
+                LogMaker.LogToTable($"DbUpdater", $"_______________DbUpdater_______________");
+                LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
+                LogMaker.LogToTable($"DbUpdater", "_______________UPDATE FAILED_______________");
+            }
+
         }
 
         async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)
