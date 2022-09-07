@@ -13,7 +13,7 @@ namespace Feralas
 
             PostgresContext context = new PostgresContext();
 
-            DbItemUpdaterAsync(context, auctions, tag);
+            await DbItemUpdaterAsync(context, auctions, tag);
             await DbAuctionsUpdaterAsync(context, auctions, tag);
             //Task backgroundNamer = DbItemNamerAsync(context);
         }
@@ -119,7 +119,7 @@ namespace Feralas
                     postgresContext.UpdateRange(soldListings);
                     postgresContext.UpdateRange(auctionsToUpdate);
                     await postgresContext.SaveChangesAsync();
-                    List<WowAuction> ancientAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
+                    List<WowAuction> ancientAuctions = postgresContext.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < cutOffTime).ToList();
                     if (ancientAuctions.Count > 0)
                     {
                         Stopwatch sw = Stopwatch.StartNew();
@@ -127,8 +127,8 @@ namespace Feralas
                         {
                             auction.FirstSeenTime = DateTime.UtcNow;
                         }
-                        context.WowAuctions.UpdateRange(ancientAuctions);
-                        await context.SaveChangesAsync();
+                        postgresContext.WowAuctions.UpdateRange(ancientAuctions);
+                        await postgresContext.SaveChangesAsync();
                         LogMaker.LogToTable($"{tag}", $"{ancientAuctions.Count} broken listings fixed.");
                     }
                 }
