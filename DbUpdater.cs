@@ -24,6 +24,7 @@ namespace Feralas
             List<WowAuction> incoming = auctions.LiveAuctions;
             List<WowAuction> storedAuctions = new();
             List<WowAuction> ancientListings = new();
+            List<WowAuction> reallyAncientListings = new();
             string PartitionKey = incoming.FirstOrDefault().PartitionKey;
             int connectedRealmId = incoming.FirstOrDefault().ConnectedRealmId;
             // the live dataset is less than 48 hours old, is not sold and is same realm
@@ -34,7 +35,18 @@ namespace Feralas
             try
             {
                 ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
+                reallyAncientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.LastSeenTime < ancientDeleteTime).ToList();
                 storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
+                if (ancientListings.Count > 0)
+                {
+                    LogMaker.LogToTable($"Klaxon!", "{tag} has broken ancient listings.");
+                    return;
+                }
+                if (reallyAncientListings.Count > 0)
+                {
+                    LogMaker.LogToTable($"Klaxon!", "{tag} has broken ancient listings.");
+                    return;
+                }
                 context.Dispose();
             }
             catch (Exception ex)
@@ -42,6 +54,7 @@ namespace Feralas
 
                 LogMaker.LogToTable($"Oops I can't count.", ex.Message);
             }
+
 
 
 
@@ -58,6 +71,14 @@ namespace Feralas
                 auction.FirstSeenTime = DateTime.SpecifyKind(auction.FirstSeenTime, DateTimeKind.Utc);
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
+            }
+
+            List<WowAuction> broken = auctionsToAdd.Where(l => l.FirstSeenTime < cutOffTime).ToList();
+            if (broken.Count > 0)
+            {
+
+                LogMaker.LogToTable($"Klaxon!", "{tag} has broken listings.");
+                return;
             }
 
             // many absent listings are sold
@@ -99,8 +120,8 @@ namespace Feralas
             {
                 try
                 {
-                    postgresContext.RemoveRange(ancientListings);
-                    postgresContext.RemoveRange(absentListings);
+                    //postgresContext.RemoveRange(ancientListings);
+                    //postgresContext.RemoveRange(absentListings);
                     postgresContext.AddRange(auctionsToAdd);
                     postgresContext.UpdateRange(soldListings);
                     postgresContext.UpdateRange(auctionsToUpdate);

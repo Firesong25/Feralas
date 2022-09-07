@@ -23,7 +23,7 @@ namespace Feralas
     public class DigitalOceanContext : DbContext
     {
         public DbSet<WowAuction> WowAuctions { get; set; }
-        public DbSet<WowItem> WowItems { get; set; }
+        public DbSet<OldItem> WowItems { get; set; }
 
         public DbSet<OldRealm> WowRealms { get; set; }
 
