@@ -98,9 +98,9 @@ namespace Feralas
 
             absentListings = absentListings.Except(soldListings).ToList();
 
-            if (absentListings.Count == 0)
+            if (ancientListings.Count == 0)
             {
-                LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {ancientListings.Count} auctions to delete.");
+                LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete.");
             }
             else
             {
@@ -115,7 +115,7 @@ namespace Feralas
             try
             {
                 //context.RemoveRange(ancientListings);
-                //context.RemoveRange(absentListings);
+                context.RemoveRange(absentListings);
                 context.AddRange(auctionsToAdd);
                 context.UpdateRange(soldListings);
                 context.UpdateRange(auctionsToUpdate);
