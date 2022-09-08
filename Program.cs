@@ -15,8 +15,8 @@ namespace Feralas
             await Configurations.Init();
             Task backgroundTask;
 
-            int count = 25;
-            int pollingInterval = 2;
+            int count = 50;
+            int pollingInterval = 1;
             int z = 0;
 
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for {count} realms starting.");
