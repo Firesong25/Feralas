@@ -26,8 +26,10 @@ namespace Feralas
 
             // Test area
             //LogMaker.Log($"DELETE AFTER THIS");
-            
-
+            //PostgresContext context = new();
+            //DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
+            //List<WowAuction> old = context.WowAuctions.Where(l => l.FirstSeenTime < cutOffTime).ToList();
+            //return;
             //LogMaker.Log($"DELETE UNTIL THIS");
 
             List<WowRealm> activeRealms = await CreateActiveRealmList(count);

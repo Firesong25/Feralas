@@ -26,6 +26,7 @@ namespace Feralas
             List<WowAuction> storedAuctions = new();
             List<WowAuction> ancientListings = new();
             List<WowAuction> reallyAncientListings = new();
+            List<WowAuction> shortTimeLeftAuctions = new();
             string PartitionKey = incoming.FirstOrDefault().PartitionKey;
             int connectedRealmId = incoming.FirstOrDefault().ConnectedRealmId;
             // the live dataset is less than 48 hours old, is not sold and is same realm
@@ -38,6 +39,8 @@ namespace Feralas
                 ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
                 reallyAncientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.LastSeenTime < ancientDeleteTime).ToList();
                 storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
+                shortTimeLeftAuctions = incoming.Where(l => l.ShortTimeLeftSeen == true).ToList();
+
                 if (ancientListings.Count > 0)
                 {
                     LogMaker.LogToTable($"Klaxon!", $"{tag} has broken ancient listings.");
@@ -46,15 +49,12 @@ namespace Feralas
                 {
                     LogMaker.LogToTable($"Klaxon!", $"{tag} has broken ancient listings.");
                 }
-                context.Dispose();
             }
             catch (Exception ex)
             {
 
                 LogMaker.LogToTable($"Oops I can't count.", ex.Message);
             }
-
-
 
 
             List<WowAuction> auctionsToAdd = incoming.Except(storedAuctions).ToList();
@@ -90,13 +90,19 @@ namespace Feralas
             // set right now as last time the auction was seen
             foreach (WowAuction auction in auctionsToUpdate)
             {
+                WowAuction trial = incoming.FirstOrDefault(l => l == auction);
+                if (trial != null)
+                {
+                    auction.ShortTimeLeftSeen = trial.ShortTimeLeftSeen;
+                }
+
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
 
-            WowAuction auction1 = auctionsToUpdate.FirstOrDefault(l => l.FirstSeenTime < cutOffTime);
 
             absentListings = absentListings.Except(soldListings).ToList();
+            shortTimeLeftAuctions = incoming.Where(l => l.ShortTimeLeftSeen == true).ToList();
 
             if (ancientListings.Count == 0)
             {
@@ -115,6 +121,7 @@ namespace Feralas
             try
             {
                 //context.RemoveRange(ancientListings);
+
                 context.RemoveRange(absentListings);
                 context.AddRange(auctionsToAdd);
                 context.UpdateRange(soldListings);
