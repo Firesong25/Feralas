@@ -92,8 +92,9 @@ public static class LogMaker
             // Create a file to write to.
             using (StreamWriter sw = File.CreateText(path))
             {
-                sw.WriteLine("<!DOCTYPE html><html><head><style> table, th, td {border: 1px solid black;border-collapse: collapse;}</style >");
+                sw.WriteLine("<!DOCTYPE html><html><head><style> table, th, td {border: 1px solid black;border-collapse: collapse;}</style >");                
                 sw.WriteLine($"<title>{title} - Log</title></head><body><table>");
+                sw.Write($"  <tr><th style=\"width:10%\">Time</th><th style=\"width:20%\">Subject</th><th>Message</th> </tr>");
             }
         }
 

@@ -14,12 +14,13 @@ namespace Feralas
             PostgresContext context = new PostgresContext();
 
             await DbItemUpdaterAsync(context, auctions, tag);
-            await DbAuctionsUpdaterAsync(context, auctions, tag);
+            string response = await DbAuctionsUpdaterAsync(context, auctions, tag);
             //Task backgroundNamer = DbItemNamerAsync(context);
         }
 
-        public async Task DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
+        public async Task<string> DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
         {
+            string response = string.Empty;
 
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
@@ -108,11 +109,11 @@ namespace Feralas
             absentListings = absentListings.Except(soldListings).ToList();
             if (ancientListings.Count == 0)
             {
-                LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete.");
+                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete.";
             }
             else
             {
-                LogMaker.LogToTable($"{tag}", $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete.");
+                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete.";
             }
 
             // Save changes and report errors
@@ -126,7 +127,7 @@ namespace Feralas
                 LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
                 LogMaker.LogToTable($"DbUpdater", $"_______________{tag}UPDATE FAILED_______________");
             }
-
+            return response;
         }
 
         async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)
