@@ -94,8 +94,8 @@ namespace Feralas
             }
             catch (Exception ex)
             {
-                LogMaker.LogToTable($"WowApi", "WowApi crash found.");
-                LogMaker.LogToTable($"WowApi", ex.Message);
+                LogMaker.LogToTable($"{tag}", "WowApi problem.");
+                LogMaker.LogToTable($"{tag}", ex.Message);
             }
 
             if (auctionsJson == string.Empty)
@@ -111,8 +111,8 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.LogToTable($"WowApi", "WowApi crash found again after 60 second delay.");
-                    LogMaker.LogToTable($"WowApi", ex.Message);
+                    LogMaker.LogToTable($"{tag}", "WowApi crash found again after 20 minutes.");
+                    LogMaker.LogToTable($"{tag}", ex.Message);
                 }
             }
 

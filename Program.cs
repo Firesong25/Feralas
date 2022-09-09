@@ -15,11 +15,11 @@ namespace Feralas
             await Configurations.Init();
             Task backgroundTask;
 
-            int count = 50;
+            int count = 150;
             int pollingInterval = 1;
             int z = 0;
 
-            LogMaker.LogToTable("Cleardragon", $"Auctions scans for {count} realms starting.");
+            LogMaker.LogToTable("Cleardragon", $"Auctions scans for all realms starting.");
 
             RealmRunner commoditiesUs = new("Commodities", "dynamic-us");
             RealmRunner commoditiesEu = new("Commodities", "dynamic-eu");

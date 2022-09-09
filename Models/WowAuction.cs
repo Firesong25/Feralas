@@ -33,6 +33,7 @@ namespace Feralas
         [Column("buyout")]
         public long? Buyout { get; set; }
 
+        // Why does this fail on Id?
         public bool Equals(WowAuction other)
         {
             if (other is null)
