@@ -6,7 +6,7 @@ namespace Feralas
 {
     public class DbUpdater
     {
-        public async Task DoUpdatesAsync(string json, string tag)
+        public async Task<string> DoUpdatesAsync(string json, string tag)
         {
             Listings auctions = new();
             await auctions.CreateLists(json, tag);
@@ -16,6 +16,7 @@ namespace Feralas
             await DbItemUpdaterAsync(context, auctions, tag);
             string response = await DbAuctionsUpdaterAsync(context, auctions, tag);
             //Task backgroundNamer = DbItemNamerAsync(context);
+            return response;
         }
 
         public async Task<string> DbAuctionsUpdaterAsync(PostgresContext context, Listings auctions, string tag)
