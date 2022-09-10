@@ -215,7 +215,7 @@ namespace Feralas
             {
                 Stopwatch sw = Stopwatch.StartNew();
                 targetList = targetList.OrderBy(l => l.PartitionKey).ThenBy(l => l.AuctionId).ThenBy(l => l.ItemId).ToList();
-                //LogMaker.Log($"Sorting the list of {totalUpdates} auctions took {sw.ElapsedMilliseconds}.");
+                LogMaker.LogToTable($"{tag}", $"Sorting the list of {totalUpdates} auctions to delete took {sw.ElapsedMilliseconds}.");
                 sw.Restart();
 
                 int saveCount = Convert.ToInt32(totalUpdates / batchSize);
@@ -227,10 +227,12 @@ namespace Feralas
                     List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
                     context.WowAuctions.RemoveRange(lastBatchOfAuctions);
                     await context.SaveChangesAsync(true);
-                    //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
+                    LogMaker.LogToTable($"{tag}", $"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
                     sw.Restart();
 
                     int runCount = 0;
+
+                    await Task.Delay(1000);
 
                     // now do the remaining batches
                     while (runCount < totalUpdates - batchSize)
@@ -239,7 +241,8 @@ namespace Feralas
                         context.WowAuctions.RemoveRange(batchOfAuctions);
                         context.SaveChanges();
                         runCount += batchSize;
-                        //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                        LogMaker.LogToTable($"{tag}", $"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                        await Task.Delay(1000);
                         sw.Restart();
                     }
                 }
