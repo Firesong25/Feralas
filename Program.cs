@@ -60,14 +60,11 @@ namespace Feralas
                     await Task.Delay(new TimeSpan(0, pollingInterval, 0));
                 }
 
-
-
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");
 
             }
 
-            LogMaker.Log($"If you see this, something has gone terribly wrong.");
 
         }
 

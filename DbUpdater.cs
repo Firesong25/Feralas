@@ -15,7 +15,7 @@ namespace Feralas
 
             await DbItemUpdaterAsync(context, auctions, tag);
             string response = await DbAuctionsUpdaterAsync(context, auctions, tag);
-            //Task backgroundNamer = DbItemNamerAsync(context);
+            Task backgroundNamer = DbItemNamerAsync(context);
             return response;
         }
 
@@ -126,11 +126,11 @@ namespace Feralas
             absentListings = absentListings.Except(soldListings).ToList();
             if (ancientListings.Count == 0)
             {
-                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete";
+                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete. {context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} auctions for {tag}";
             }
             else
             {
-                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete";
+                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete. {context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} auctions for {tag}";
             }
 
             // Save changes and report errors
