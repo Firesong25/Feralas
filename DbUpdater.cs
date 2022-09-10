@@ -77,7 +77,7 @@ namespace Feralas
                 context.WowAuctions.RemoveRange(ancientListings);
                 context.SaveChanges();
             }
-            
+
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
@@ -124,7 +124,7 @@ namespace Feralas
 
             // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
             List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
-            if (deleteTheseAbsentListings.Count > 0)
+            if (!tag.ToLower().Contains("commodities") && deleteTheseAbsentListings.Count > 0)
             {
                 context.WowAuctions.RemoveRange(deleteTheseAbsentListings);
                 context.SaveChanges();
@@ -206,8 +206,8 @@ namespace Feralas
                 int remainderSaveCount = totalUpdates % batchSize;
 
 
-                    // do the small batch first
-                    List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
+                // do the small batch first
+                List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
                 try
                 {
                     context.WowAuctions.UpdateRange(lastBatchOfAuctions);
@@ -227,10 +227,10 @@ namespace Feralas
 
                 int runCount = 0;
 
-                    // now do the remaining batches
-                    while (runCount < totalUpdates - batchSize)
-                    {
-                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                // now do the remaining batches
+                while (runCount < totalUpdates - batchSize)
+                {
+                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
                     try
                     {
                         context.WowAuctions.UpdateRange(batchOfAuctions);
@@ -252,93 +252,94 @@ namespace Feralas
 
                 }
 
-            //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
-        }
-
-        async Task BulkAuctionsDelete(PostgresContext context, string tag, List<WowAuction> targetList)
-        {
-            Stopwatch totalMs = Stopwatch.StartNew();
-            int batchSize = 25000;
-            int totalUpdates = targetList.Count;
-
-            if (totalUpdates == 0)
-            {
-                return;
+                //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
             }
 
-            //LogMaker.LogToTable($"{tag}", $"{totalUpdates} auctions to delete.");
-
-            if (batchSize > totalUpdates)
+            async Task BulkAuctionsDelete(PostgresContext context, string tag, List<WowAuction> targetList)
             {
-                context.WowAuctions.RemoveRange(targetList);
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch
-                {
-                    LogMaker.LogToTable($"{tag}", $"{totalUpdates} to be deleted for {tag} but delete failed as it thinks zero to be deleted.");
-                }
-            }
-            else
-            {
-                Stopwatch sw = Stopwatch.StartNew();
-                targetList = targetList.OrderBy(l => l.PartitionKey).ThenBy(l => l.AuctionId).ThenBy(l => l.ItemId).ToList();
-                //LogMaker.LogToTable($"{tag}", $"Sorting the list of {totalUpdates} auctions to delete took {sw.ElapsedMilliseconds}.");
-                sw.Restart();
+                Stopwatch totalMs = Stopwatch.StartNew();
+                int batchSize = 25000;
+                int totalUpdates = targetList.Count;
 
-                int saveCount = Convert.ToInt32(totalUpdates / batchSize);
-                int remainderSaveCount = totalUpdates % batchSize;
-
-                try
+                if (totalUpdates == 0)
                 {
-                    // do the small batch first
-                    List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
-                    context.WowAuctions.RemoveRange(lastBatchOfAuctions);
-                    await context.SaveChangesAsync(true);
-                    //LogMaker.LogToTable($"{tag}", $"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
-                    sw.Restart();
-
-  
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting {remainderSaveCount} auctions.");
-                }
-                catch (Exception ex)
-                {
-                    LogMaker.LogToTable($"{tag}", ex.Message);
+                    return;
                 }
 
-                int runCount = 0;
+                //LogMaker.LogToTable($"{tag}", $"{totalUpdates} auctions to delete.");
 
-                // now do the remaining batches
-                while (runCount < totalUpdates - batchSize)
+                if (batchSize > totalUpdates)
                 {
-                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                    context.WowAuctions.RemoveRange(targetList);
                     try
                     {
-                        context.WowAuctions.RemoveRange(batchOfAuctions);
                         context.SaveChanges();
-                        runCount += batchSize;
-                        //LogMaker.LogToTable($"{tag}", $"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
-                        await Task.Delay(1000);
+                    }
+                    catch
+                    {
+                        LogMaker.LogToTable($"{tag}", $"{totalUpdates} to be deleted for {tag} but delete failed as it thinks zero to be deleted.");
+                    }
+                }
+                else
+                {
+                    Stopwatch sw = Stopwatch.StartNew();
+                    targetList = targetList.OrderBy(l => l.PartitionKey).ThenBy(l => l.AuctionId).ThenBy(l => l.ItemId).ToList();
+                    //LogMaker.LogToTable($"{tag}", $"Sorting the list of {totalUpdates} auctions to delete took {sw.ElapsedMilliseconds}.");
+                    sw.Restart();
+
+                    int saveCount = Convert.ToInt32(totalUpdates / batchSize);
+                    int remainderSaveCount = totalUpdates % batchSize;
+
+                    try
+                    {
+                        // do the small batch first
+                        List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
+                        context.WowAuctions.RemoveRange(lastBatchOfAuctions);
+                        await context.SaveChangesAsync(true);
+                        //LogMaker.LogToTable($"{tag}", $"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
+                        sw.Restart();
+
+
                     }
                     catch (DbUpdateConcurrencyException)
                     {
-                        LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting 25000 auctions from index {runCount}.");
+                        LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting {remainderSaveCount} auctions.");
                     }
                     catch (Exception ex)
                     {
                         LogMaker.LogToTable($"{tag}", ex.Message);
                     }
 
-                    sw.Restart();
+                    int runCount = 0;
+
+                    // now do the remaining batches
+                    while (runCount < totalUpdates - batchSize)
+                    {
+                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                        try
+                        {
+                            context.WowAuctions.RemoveRange(batchOfAuctions);
+                            context.SaveChanges();
+                            runCount += batchSize;
+                            //LogMaker.LogToTable($"{tag}", $"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                            await Task.Delay(1000);
+                        }
+                        catch (DbUpdateConcurrencyException)
+                        {
+                            LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting 25000 auctions from index {runCount}.");
+                        }
+                        catch (Exception ex)
+                        {
+                            LogMaker.LogToTable($"{tag}", ex.Message);
+                        }
+
+                        sw.Restart();
+                    }
+
                 }
 
+                //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
             }
-
-            //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
         }
 
         async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)
@@ -433,3 +434,4 @@ namespace Feralas
         }
     }
 }
+
