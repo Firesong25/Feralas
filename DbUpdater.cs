@@ -23,6 +23,8 @@ namespace Feralas
         {
             string response = string.Empty;
 
+            Stopwatch sw = Stopwatch.StartNew();
+
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
             List<WowAuction> storedAuctions = new();
@@ -60,15 +62,23 @@ namespace Feralas
 
             if (tag.ToLower().Contains("commodities"))
             {
+                sw.Restart();
                 // there is no value in analysing sold commodity listings as deals have to be done today
-                ancientListings = context.WowAuctions.ToList().Where(l => l.ConnectedRealmId == connectedRealmId).ToList().Except(incoming).ToList();
+                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} loking fo anceint listings.");
+                ancientListings = context.WowAuctions.ToList().Where(l => l.ConnectedRealmId == connectedRealmId).ToList();
+                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} relevant listings found in {sw.ElapsedMilliseconds} ms.");
+                sw.Restart();
+                ancientListings = ancientListings.Except(incoming).ToList();
+                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} listing to be deleted found in {sw.ElapsedMilliseconds}");
             }
             else
             {
                 ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
             }
 
+            sw.Restart();
             await BulkAuctionsDelete(context, tag, ancientListings);
+            LogMaker.LogToTable($"DbUpdater", $"_______________{ancientListings.Count} deleted in {sw.ElapsedMilliseconds}");
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
