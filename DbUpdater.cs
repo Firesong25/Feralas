@@ -168,7 +168,7 @@ namespace Feralas
                 }
                 catch
                 {
-                    LogMaker.Log($"{totalUpdates} to be updated for {tag} but update failed.");
+                    LogMaker.LogToTable($"{tag}", $"{totalUpdates} to be updated for {tag}  but update failed as it thinks zero to be updated.");
                 }
             }
             else
@@ -230,7 +230,14 @@ namespace Feralas
             if (batchSize > totalUpdates)
             {
                 context.WowAuctions.RemoveRange(targetList);
-                context.SaveChanges();
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch
+                {
+                    LogMaker.LogToTable($"{tag}", $"{totalUpdates} to be deleted for {tag} but delete failed as it thinks zero to be deleted.");
+                }
             }
             else
             {
@@ -344,7 +351,7 @@ namespace Feralas
                 }
                 catch
                 {
-                    LogMaker.LogToTable($"DbUpdater", $"Blizzard API timeout");
+                    //LogMaker.LogToTable($"DbUpdater", $"Blizzard API timeout");
                     await Task.Delay(1000 * 60);
                 }
                 await Task.Delay(100);
