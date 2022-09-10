@@ -15,7 +15,7 @@ namespace Feralas
 
             await DbItemUpdaterAsync(context, auctions, tag);
             string response = await DbAuctionsUpdaterAsync(context, auctions, tag);
-            Task backgroundNamer = DbItemNamerAsync(context);
+            //Task backgroundNamer = DbItemNamerAsync(context);
             return response;
         }
 
@@ -72,8 +72,11 @@ namespace Feralas
                 ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
             }
 
-            context.RemoveRange(ancientListings);
-            context.SaveChanges();
+            if (ancientListings.Count > 0)
+            {
+                context.WowAuctions.RemoveRange(ancientListings);
+                context.SaveChanges();
+            }
             
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
@@ -85,8 +88,12 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
-            context.WowAuctions.AddRange(auctionsToAdd);
-            context.SaveChanges();
+            if (auctionsToAdd.Count > 0)
+            {
+                context.WowAuctions.AddRange(auctionsToAdd);
+                context.SaveChanges();
+            }
+
 
             // Listings in both incoming and stored are to be updated
             auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
@@ -108,13 +115,21 @@ namespace Feralas
 
             // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
             soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
-            context.WowAuctions.UpdateRange(soldListings);
-            context.SaveChanges();
+            if (soldListings.Count > 0)
+            {
+                context.WowAuctions.UpdateRange(soldListings);
+                context.SaveChanges();
+            }
+
 
             // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
             List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
-            context.WowAuctions.RemoveRange(deleteTheseAbsentListings);
-            context.SaveChanges();
+            if (deleteTheseAbsentListings.Count > 0)
+            {
+                context.WowAuctions.RemoveRange(deleteTheseAbsentListings);
+                context.SaveChanges();
+            }
+
 
             // Sold auctions do not need any further updates
             auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
@@ -125,8 +140,12 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
-            context.WowAuctions.UpdateRange(auctionsToUpdate);
-            context.SaveChanges();
+            if (auctionsToUpdate.Count > 0)
+            {
+                context.WowAuctions.UpdateRange(auctionsToUpdate);
+                context.SaveChanges();
+            }
+
 
             // Make a report of all changes.
             absentListings = absentListings.Except(soldListings).ToList();
