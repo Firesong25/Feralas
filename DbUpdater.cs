@@ -154,11 +154,22 @@ namespace Feralas
             int batchSize = 25000;
             int totalUpdates = targetList.Count;
 
+            if (totalUpdates == 0)
+            {
+                return;
+            }
 
             if (batchSize > totalUpdates)
             {
                 context.WowAuctions.UpdateRange(targetList);
-                context.SaveChanges();
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch
+                {
+                    LogMaker.Log($"{totalUpdates} to be updated for {tag} but update failed.");
+                }
             }
             else
             {
@@ -208,6 +219,12 @@ namespace Feralas
             Stopwatch totalMs = Stopwatch.StartNew();
             int batchSize = 25000;
             int totalUpdates = targetList.Count;
+
+            if (totalUpdates == 0)
+            {
+                return;
+            }
+
             //LogMaker.LogToTable($"{tag}", $"{totalUpdates} auctions to delete.");
 
             if (batchSize > totalUpdates)
@@ -249,6 +266,10 @@ namespace Feralas
                         await Task.Delay(1000);
                         sw.Restart();
                     }
+                }
+                catch (DbUpdateConcurrencyException exConcurrncy)
+                {
+                    LogMaker.LogToTable($"{tag} ", "Concurrency exception.");
                 }
                 catch (Exception ex)
                 {

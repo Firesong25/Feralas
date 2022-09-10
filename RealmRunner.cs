@@ -52,7 +52,15 @@ namespace Feralas
                 else
                     LogMaker.LogToTable($"RealmRunner", $"Failed to get realm data for {tag} namespace.");
 
-                LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
+                if (results != string.Empty)
+                {
+                    LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
+                }
+                else
+                {
+                    LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for failed run.");
+                }
+                
             }
             catch (Exception ex)
             {
