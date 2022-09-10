@@ -72,7 +72,9 @@ namespace Feralas
                 ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
             }
 
-            await BulkAuctionsDelete(context, tag, ancientListings);
+            context.RemoveRange(ancientListings);
+            context.SaveChanges();
+            
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
@@ -84,6 +86,7 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
             context.WowAuctions.AddRange(auctionsToAdd);
+            context.SaveChanges();
 
             // Listings in both incoming and stored are to be updated
             auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
@@ -105,11 +108,13 @@ namespace Feralas
 
             // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
             soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
-            await BulkAuctionsUpdate(context, tag, soldListings);
+            context.WowAuctions.UpdateRange(soldListings);
+            context.SaveChanges();
 
             // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
             List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
-            await BulkAuctionsDelete(context, tag,deleteTheseAbsentListings);
+            context.WowAuctions.RemoveRange(deleteTheseAbsentListings);
+            context.SaveChanges();
 
             // Sold auctions do not need any further updates
             auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
@@ -120,7 +125,8 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
-            await BulkAuctionsUpdate(context, tag, auctionsToUpdate);
+            context.WowAuctions.UpdateRange(auctionsToUpdate);
+            context.SaveChanges();
 
             // Make a report of all changes.
             absentListings = absentListings.Except(soldListings).ToList();
@@ -136,7 +142,6 @@ namespace Feralas
             // Save changes and report errors
             try
             {
-                await BulkAuctionsUpdate(context, tag, auctionsToUpdate);
                 await context.SaveChangesAsync();
             }
             catch (Exception ex)
