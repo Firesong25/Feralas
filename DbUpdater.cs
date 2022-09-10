@@ -56,8 +56,19 @@ namespace Feralas
             storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
 
             // Listings that are over 7 days old are in the ancientListings list and deleted
-            ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
-            context.WowAuctions.RemoveRange(ancientListings);
+            
+
+            if (tag.ToLower().Contains("commodities"))
+            {
+                // there is no value in analysing sold commodity listings as deals have to be done today
+                ancientListings = context.WowAuctions.ToList().Except(incoming).ToList();
+            }
+            else
+            {
+                ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
+            }
+
+            await BulkAuctionsDelete(context, ancientListings);
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
@@ -90,10 +101,11 @@ namespace Feralas
 
             // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
             soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
-            context.WowAuctions.UpdateRange(soldListings);
+            await BulkAuctionsUpdate(context, soldListings);
 
             // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
-            context.WowAuctions.RemoveRange(absentListings.Where(l => l.ShortTimeLeftSeen == true));
+            List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
+            await BulkAuctionsDelete(context, deleteTheseAbsentListings);
 
             // Sold auctions do not need any further updates
             auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
@@ -104,7 +116,7 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
-            context.WowAuctions.UpdateRange(auctionsToUpdate);
+            await BulkAuctionsUpdate(context, auctionsToUpdate);
 
             // Make a report of all changes.
             absentListings = absentListings.Except(soldListings).ToList();
@@ -120,6 +132,7 @@ namespace Feralas
             // Save changes and report errors
             try
             {
+                await BulkAuctionsUpdate(context, auctionsToUpdate);
                 await context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -129,6 +142,100 @@ namespace Feralas
                 LogMaker.LogToTable($"DbUpdater", $"_______________{tag}UPDATE FAILED_______________");
             }
             return response;
+        }
+
+        async Task BulkAuctionsUpdate(PostgresContext context, List<WowAuction> targetList)
+        {
+            Stopwatch totalMs = Stopwatch.StartNew();
+            int batchSize = 25000;
+            int totalUpdates = targetList.Count;
+
+
+            if (batchSize > totalUpdates)
+            {
+                context.WowAuctions.UpdateRange(targetList);
+                context.SaveChanges();
+            }
+            else
+            {
+                Stopwatch sw = Stopwatch.StartNew();
+                targetList = targetList.OrderBy(l => l.PartitionKey).ThenBy(l => l.AuctionId).ThenBy(l => l.ItemId).ToList();
+                //LogMaker.Log($"Sorting the list of {totalUpdates} auctions took {sw.ElapsedMilliseconds}.");
+                sw.Restart();
+
+                int saveCount = Convert.ToInt32(totalUpdates / batchSize);
+                int remainderSaveCount = totalUpdates % batchSize;
+
+                // do the small batch first
+                List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
+                context.WowAuctions.UpdateRange(lastBatchOfAuctions);
+                await context.SaveChangesAsync(true);
+                //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
+                sw.Restart();
+
+                int runCount = 0;
+
+                // now do the remaining batches
+                while (runCount < totalUpdates - batchSize)
+                {
+                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                    context.WowAuctions.UpdateRange(batchOfAuctions);
+                    context.SaveChanges();
+                    runCount += batchSize;
+                    //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                    sw.Restart();
+                }
+
+            }
+
+            //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
+        }
+
+        async Task BulkAuctionsDelete(PostgresContext context, List<WowAuction> targetList)
+        {
+            Stopwatch totalMs = Stopwatch.StartNew();
+            int batchSize = 25000;
+            int totalUpdates = targetList.Count;
+
+
+            if (batchSize > totalUpdates)
+            {
+                context.WowAuctions.RemoveRange(targetList);
+                context.SaveChanges();
+            }
+            else
+            {
+                Stopwatch sw = Stopwatch.StartNew();
+                targetList = targetList.OrderBy(l => l.PartitionKey).ThenBy(l => l.AuctionId).ThenBy(l => l.ItemId).ToList();
+                //LogMaker.Log($"Sorting the list of {totalUpdates} auctions took {sw.ElapsedMilliseconds}.");
+                sw.Restart();
+
+                int saveCount = Convert.ToInt32(totalUpdates / batchSize);
+                int remainderSaveCount = totalUpdates % batchSize;
+
+                // do the small batch first
+                List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
+                context.WowAuctions.RemoveRange(lastBatchOfAuctions);
+                await context.SaveChangesAsync(true);
+                //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
+                sw.Restart();
+
+                int runCount = 0;
+
+                // now do the remaining batches
+                while (runCount < totalUpdates - batchSize)
+                {
+                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                    context.WowAuctions.RemoveRange(batchOfAuctions);
+                    context.SaveChanges();
+                    runCount += batchSize;
+                    //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                    sw.Restart();
+                }
+
+            }
+
+            //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
         }
 
         async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)

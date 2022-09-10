@@ -94,7 +94,7 @@ public static class LogMaker
             {
                 sw.WriteLine("<!DOCTYPE html><html><head><style =\\\"width:100%\\> table, th, td {border: 1px solid black;border-collapse: collapse;}</style >");                
                 sw.WriteLine($"<title>{title} - Log</title></head><body><table>");
-                sw.Write($"  <tr><th style=\"width:10%\">Time</th><th style=\"width:30%\">Subject</th><th style=\"width:60%\">Message</th> </tr>");
+                sw.Write($"  <tr><th style=\"width:10%\">Time</th><th style=\"width:20%\">Subject</th><th style=\"width:70%\">Message</th> </tr>");
             }
         }
 

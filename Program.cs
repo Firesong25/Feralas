@@ -25,8 +25,10 @@ namespace Feralas
             RealmRunner commoditiesEu = new("Commodities", "dynamic-eu");
 
             // Test area
+            //            LogMaker.Log($"DELETE THIS!");
 
-            //LogMaker.Log($"DELETE UNTIL THIS");
+
+            //DELETE UNTIL THIS
 
             List<WowRealm> activeRealms = await CreateActiveRealmList(count);
             RealmRunner realmRunner = new("", "");
@@ -61,7 +63,7 @@ namespace Feralas
 
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");
-                
+
             }
 
             LogMaker.Log($"If you see this, something has gone terribly wrong.");
