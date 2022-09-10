@@ -21,8 +21,7 @@ namespace Feralas
 
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for all realms starting.");
 
-            RealmRunner commoditiesUs = new("Commodities", "dynamic-us");
-            RealmRunner commoditiesEu = new("Commodities", "dynamic-eu");
+            RealmRunner realmRunner = new("", "");
 
             // Test area
             //            LogMaker.Log($"DELETE THIS!");
@@ -31,7 +30,7 @@ namespace Feralas
             //DELETE UNTIL THIS
 
             List<WowRealm> activeRealms = await CreateActiveRealmList(count);
-            RealmRunner realmRunner = new("", "");
+            
 
             while (true)
             {
@@ -46,13 +45,6 @@ namespace Feralas
                     }
                 }
 
-                foreach (WowRealm realm in activeRealms)
-                {
-                    realmRunner = new(realm.Name, realm.WowNamespace);
-                    backgroundTask = realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, pollingInterval, 0));
-                }
-
                 realmRunner = new("Commodities", "dynamic-us");
                 backgroundTask = realmRunner.Run();
                 //commodities runs take twice as long
@@ -60,6 +52,15 @@ namespace Feralas
                 realmRunner = new("Commodities", "dynamic-eu");
                 backgroundTask = realmRunner.Run();
                 await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
+
+                foreach (WowRealm realm in activeRealms)
+                {
+                    realmRunner = new(realm.Name, realm.WowNamespace);
+                    backgroundTask = realmRunner.Run();
+                    await Task.Delay(new TimeSpan(0, pollingInterval, 0));
+                }
+
+
 
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");

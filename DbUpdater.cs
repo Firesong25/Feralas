@@ -56,7 +56,7 @@ namespace Feralas
             storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
 
             // Listings that are over 7 days old are in the ancientListings list and deleted
-            
+
 
             if (tag.ToLower().Contains("commodities"))
             {
@@ -68,7 +68,7 @@ namespace Feralas
                 ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
             }
 
-            await BulkAuctionsDelete(context, ancientListings);
+            await BulkAuctionsDelete(context, tag, ancientListings);
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
@@ -101,11 +101,11 @@ namespace Feralas
 
             // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
             soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
-            await BulkAuctionsUpdate(context, soldListings);
+            await BulkAuctionsUpdate(context, tag, soldListings);
 
             // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
             List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
-            await BulkAuctionsDelete(context, deleteTheseAbsentListings);
+            await BulkAuctionsDelete(context, tag,deleteTheseAbsentListings);
 
             // Sold auctions do not need any further updates
             auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
@@ -116,7 +116,7 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             }
-            await BulkAuctionsUpdate(context, auctionsToUpdate);
+            await BulkAuctionsUpdate(context, tag, auctionsToUpdate);
 
             // Make a report of all changes.
             absentListings = absentListings.Except(soldListings).ToList();
@@ -132,7 +132,7 @@ namespace Feralas
             // Save changes and report errors
             try
             {
-                await BulkAuctionsUpdate(context, auctionsToUpdate);
+                await BulkAuctionsUpdate(context, tag, auctionsToUpdate);
                 await context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -144,7 +144,7 @@ namespace Feralas
             return response;
         }
 
-        async Task BulkAuctionsUpdate(PostgresContext context, List<WowAuction> targetList)
+        async Task BulkAuctionsUpdate(PostgresContext context, string tag, List<WowAuction> targetList)
         {
             Stopwatch totalMs = Stopwatch.StartNew();
             int batchSize = 25000;
@@ -166,32 +166,40 @@ namespace Feralas
                 int saveCount = Convert.ToInt32(totalUpdates / batchSize);
                 int remainderSaveCount = totalUpdates % batchSize;
 
-                // do the small batch first
-                List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
-                context.WowAuctions.UpdateRange(lastBatchOfAuctions);
-                await context.SaveChangesAsync(true);
-                //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
-                sw.Restart();
-
-                int runCount = 0;
-
-                // now do the remaining batches
-                while (runCount < totalUpdates - batchSize)
+                try
                 {
-                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
-                    context.WowAuctions.UpdateRange(batchOfAuctions);
-                    context.SaveChanges();
-                    runCount += batchSize;
-                    //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                    // do the small batch first
+                    List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
+                    context.WowAuctions.UpdateRange(lastBatchOfAuctions);
+                    await context.SaveChangesAsync(true);
+                    //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
                     sw.Restart();
+
+                    int runCount = 0;
+
+                    // now do the remaining batches
+                    while (runCount < totalUpdates - batchSize)
+                    {
+                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                        context.WowAuctions.UpdateRange(batchOfAuctions);
+                        context.SaveChanges();
+                        runCount += batchSize;
+                        //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                        sw.Restart();
+                    }
                 }
+                catch (Exception ex)
+                {
+                    LogMaker.LogToTable($"{tag}", ex.Message);
+                }
+
 
             }
 
             //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
         }
 
-        async Task BulkAuctionsDelete(PostgresContext context, List<WowAuction> targetList)
+        async Task BulkAuctionsDelete(PostgresContext context, string tag, List<WowAuction> targetList)
         {
             Stopwatch totalMs = Stopwatch.StartNew();
             int batchSize = 25000;
@@ -213,24 +221,31 @@ namespace Feralas
                 int saveCount = Convert.ToInt32(totalUpdates / batchSize);
                 int remainderSaveCount = totalUpdates % batchSize;
 
-                // do the small batch first
-                List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
-                context.WowAuctions.RemoveRange(lastBatchOfAuctions);
-                await context.SaveChangesAsync(true);
-                //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
-                sw.Restart();
-
-                int runCount = 0;
-
-                // now do the remaining batches
-                while (runCount < totalUpdates - batchSize)
+                try
                 {
-                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
-                    context.WowAuctions.RemoveRange(batchOfAuctions);
-                    context.SaveChanges();
-                    runCount += batchSize;
-                    //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                    // do the small batch first
+                    List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
+                    context.WowAuctions.RemoveRange(lastBatchOfAuctions);
+                    await context.SaveChangesAsync(true);
+                    //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
                     sw.Restart();
+
+                    int runCount = 0;
+
+                    // now do the remaining batches
+                    while (runCount < totalUpdates - batchSize)
+                    {
+                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                        context.WowAuctions.RemoveRange(batchOfAuctions);
+                        context.SaveChanges();
+                        runCount += batchSize;
+                        //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                        sw.Restart();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.LogToTable($"{tag}", ex.Message);
                 }
 
             }
