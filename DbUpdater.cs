@@ -122,11 +122,11 @@ namespace Feralas
             absentListings = absentListings.Except(soldListings).ToList();
             if (ancientListings.Count == 0)
             {
-                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete.";
+                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete";
             }
             else
             {
-                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete.";
+                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete";
             }
 
             // Save changes and report errors
