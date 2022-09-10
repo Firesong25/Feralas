@@ -64,12 +64,12 @@ namespace Feralas
             {
                 sw.Restart();
                 // there is no value in analysing sold commodity listings as deals have to be done today
-                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} loking fo anceint listings.");
-                ancientListings = context.WowAuctions.ToList().Where(l => l.ConnectedRealmId == connectedRealmId).ToList();
-                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} relevant listings found in {sw.ElapsedMilliseconds} ms.");
+                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} looking for anciint listings.");
+                ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId).ToList();
+                LogMaker.LogToTable($"DbUpdater", $"_______________{ancientListings.Count} relevant listings found in {sw.ElapsedMilliseconds} ms.");
                 sw.Restart();
                 ancientListings = ancientListings.Except(incoming).ToList();
-                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} listing to be deleted found in {sw.ElapsedMilliseconds}");
+                LogMaker.LogToTable($"DbUpdater", $"_______________{ancientListings.Count} listings to be deleted found in {sw.ElapsedMilliseconds}");
             }
             else
             {

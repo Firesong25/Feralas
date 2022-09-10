@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Feralas
 {
     [Table("wow_items")]
-    public partial class WowItem : IEquatable<WowItem>
+    public class WowItem
     {
         [Column("item_id")]
         public int ItemId { get; set; }
@@ -24,17 +24,6 @@ namespace Feralas
         [Column("id")]
         [Key]
         public Guid Id { get; set; }
-
-        public bool Equals(WowItem other)
-        {
-            if (other is null)
-                return false;
-
-            return Id == other.Id;
-        }
-
-        public override bool Equals(object obj) => Equals(obj as WowItem);
-        public override int GetHashCode() => Id.GetHashCode();
     }
 
     public partial class OldItem
