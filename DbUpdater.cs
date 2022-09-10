@@ -205,27 +205,19 @@ namespace Feralas
                 int saveCount = Convert.ToInt32(totalUpdates / batchSize);
                 int remainderSaveCount = totalUpdates % batchSize;
 
-                try
-                {
+
                     // do the small batch first
                     List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
+                try
+                {
                     context.WowAuctions.UpdateRange(lastBatchOfAuctions);
                     await context.SaveChangesAsync(true);
                     //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
                     sw.Restart();
-
-                    int runCount = 0;
-
-                    // now do the remaining batches
-                    while (runCount < totalUpdates - batchSize)
-                    {
-                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
-                        context.WowAuctions.UpdateRange(batchOfAuctions);
-                        context.SaveChanges();
-                        runCount += batchSize;
-                        //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
-                        sw.Restart();
-                    }
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    LogMaker.LogToTable($"{tag} ", $"Concurrency exception when updating {remainderSaveCount} auctions.");
                 }
                 catch (Exception ex)
                 {
@@ -233,7 +225,32 @@ namespace Feralas
                 }
 
 
-            }
+                int runCount = 0;
+
+                    // now do the remaining batches
+                    while (runCount < totalUpdates - batchSize)
+                    {
+                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                    try
+                    {
+                        context.WowAuctions.UpdateRange(batchOfAuctions);
+                        context.SaveChanges();
+                        runCount += batchSize;
+                        //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
+                        sw.Restart();
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        LogMaker.LogToTable($"{tag} ", $"Concurrency exception when updating 25000 auctions from index {runCount}.");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMaker.LogToTable($"{tag}", ex.Message);
+                    }
+
+
+
+                }
 
             //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
         }
@@ -282,29 +299,41 @@ namespace Feralas
                     //LogMaker.LogToTable($"{tag}", $"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
                     sw.Restart();
 
-                    int runCount = 0;
+  
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting {remainderSaveCount} auctions.");
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.LogToTable($"{tag}", ex.Message);
+                }
 
-                    await Task.Delay(1000);
+                int runCount = 0;
 
-                    // now do the remaining batches
-                    while (runCount < totalUpdates - batchSize)
+                // now do the remaining batches
+                while (runCount < totalUpdates - batchSize)
+                {
+                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
+                    try
                     {
-                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
                         context.WowAuctions.RemoveRange(batchOfAuctions);
                         context.SaveChanges();
                         runCount += batchSize;
                         //LogMaker.LogToTable($"{tag}", $"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
                         await Task.Delay(1000);
-                        sw.Restart();
                     }
-                }
-                catch (DbUpdateConcurrencyException exConcurrncy)
-                {
-                    LogMaker.LogToTable($"{tag} ", "Concurrency exception.");
-                }
-                catch (Exception ex)
-                {
-                    LogMaker.LogToTable($"{tag}", ex.Message);
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting 25000 auctions from index {runCount}.");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMaker.LogToTable($"{tag}", ex.Message);
+                    }
+
+                    sw.Restart();
                 }
 
             }
