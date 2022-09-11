@@ -95,80 +95,81 @@ namespace Feralas
             }
 
 
-            // Listings in both incoming and stored are to be updated
-            auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
-
-            // Incoming listings that have a SHORT duration are overpriced. List in shortTimeLeftAuctions and mark them in auctionsToUpdate
-            shortTimeLeftAuctions = incoming.Where(l => l.ShortTimeLeftSeen == true).ToList();
-            markAsShortTimeLeft = auctionsToUpdate.Intersect(shortTimeLeftAuctions).ToList();
-
-            foreach (WowAuction mark in markAsShortTimeLeft)
+            // Commodity auctions do not need updates
+            if (!tag.ToLower().Contains("commodities"))
             {
-                WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l == mark);  // fastest 8ms
-                // WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l.Id == mark.Id); // 25ms
-                // WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l.AuctionId == mark.AuctionId && l.ItemId == mark.ItemId); //12ms
-                stlseen.ShortTimeLeftSeen = true;
-            }
+                // Listings in both incoming and stored are to be updated
+                auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
 
-            // Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
-            absentListings = storedAuctions.Except(incoming).ToList();
+                // Incoming listings that have a SHORT duration are overpriced. List in shortTimeLeftAuctions and mark them in auctionsToUpdate
+                shortTimeLeftAuctions = incoming.Where(l => l.ShortTimeLeftSeen == true).ToList();
+                markAsShortTimeLeft = auctionsToUpdate.Intersect(shortTimeLeftAuctions).ToList();
 
-            // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
-            soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
-            if (soldListings.Count > 0)
-            {
-                context.WowAuctions.UpdateRange(soldListings);
-                context.SaveChanges();
-            }
+                foreach (WowAuction mark in markAsShortTimeLeft)
+                {
+                    WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l == mark);  // fastest 8ms
+                                                                                           // WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l.Id == mark.Id); // 25ms
+                                                                                           // WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l.AuctionId == mark.AuctionId && l.ItemId == mark.ItemId); //12ms
+                    stlseen.ShortTimeLeftSeen = true;
+                }
+
+                // Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
+                absentListings = storedAuctions.Except(incoming).ToList();
+
+                // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
+                soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
+                if (soldListings.Count > 0)
+                {
+                    context.WowAuctions.UpdateRange(soldListings);
+                    context.SaveChanges();
+                }
 
 
-            // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
-            List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
-            if (!tag.ToLower().Contains("commodities") && deleteTheseAbsentListings.Count > 0)
-            {
-                context.WowAuctions.RemoveRange(deleteTheseAbsentListings);
-                context.SaveChanges();
-            }
+                // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
+                List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
+                if (deleteTheseAbsentListings.Count > 0)
+                {
+                    context.WowAuctions.RemoveRange(deleteTheseAbsentListings);
+                    context.SaveChanges();
+                }
 
 
-            // Sold auctions do not need any further updates
-            auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
+                // Sold auctions do not need any further updates
+                auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
 
-            // Stored listings that are still live are in auctionsToUpdate.  Update their timestamps.
-            foreach (WowAuction auction in auctionsToUpdate)
-            {
-                auction.LastSeenTime = DateTime.UtcNow;
-                auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
-            }
-            if (auctionsToUpdate.Count > 0)
-            {
-                context.WowAuctions.UpdateRange(auctionsToUpdate);
-                context.SaveChanges();
+                // Stored listings that are still live are in auctionsToUpdate.  Update their timestamps.
+                foreach (WowAuction auction in auctionsToUpdate)
+                {
+                    auction.LastSeenTime = DateTime.UtcNow;
+                    auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
+                }
+                if (auctionsToUpdate.Count > 0)
+                {
+                    context.WowAuctions.UpdateRange(auctionsToUpdate);
+                    context.SaveChanges();
+                }
             }
 
 
             // Make a report of all changes.
-            absentListings = absentListings.Except(soldListings).ToList();
-            if (ancientListings.Count == 0)
+            if (tag.ToLower().Contains("commodities"))
             {
-                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} auctions to delete. {context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} auctions for {tag}";
+                response = $"{auctionsToAdd.Count} auctions added and {ancientListings.Count} deleted. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
             }
             else
             {
-                response = $"{auctionsToAdd.Count} auctions to add, {soldListings.Count} to mark sold, {auctionsToUpdate.Count} auctions to update and {absentListings.Count} expired and {ancientListings.Count} auctions to delete. {context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} auctions for {tag}";
+                absentListings = absentListings.Except(soldListings).ToList();
+                if (ancientListings.Count == 0)
+                {
+                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated and {absentListings.Count} deleted. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
+                }
+                else
+                {
+                    int deletedCount = absentListings.Count + ancientListings.Count;
+                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 48 hours old purged. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == connectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
+                }
             }
 
-            // Save changes and report errors
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                LogMaker.LogToTable($"DbUpdater", $"_______________{tag} DbUpdater_______________");
-                LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
-                LogMaker.LogToTable($"DbUpdater", $"_______________{tag}UPDATE FAILED_______________");
-            }
             return response;
         }
 

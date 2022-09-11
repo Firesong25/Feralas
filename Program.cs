@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text.Json;
+using System.Diagnostics;
 
 namespace Feralas
 {
@@ -30,7 +30,7 @@ namespace Feralas
             //DELETE UNTIL THIS
 
             List<WowRealm> activeRealms = await CreateActiveRealmList(count);
-            
+            Stopwatch sw = new();
 
             while (true)
             {
@@ -45,15 +45,35 @@ namespace Feralas
                     }
                 }
 
+                // divide realms into 2 batches and process the big commodity runs in between
+                int divider = 0;
+                if (activeRealms.Count % 2 == 0)
+                {
+                    divider = activeRealms.Count / 2;
+                }
+                else
+                {
+                    divider = (activeRealms.Count - 1) / 2;
+                }
+
                 realmRunner = new("Commodities", "dynamic-us");
                 backgroundTask = realmRunner.Run();
                 //commodities runs take twice as long
                 await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
+
+
+                foreach (WowRealm realm in activeRealms.GetRange(0, divider))
+                {
+                    realmRunner = new(realm.Name, realm.WowNamespace);
+                    backgroundTask = realmRunner.Run();
+                    await Task.Delay(new TimeSpan(0, pollingInterval, 0));
+                }
+
                 realmRunner = new("Commodities", "dynamic-eu");
                 backgroundTask = realmRunner.Run();
                 await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
 
-                foreach (WowRealm realm in activeRealms)
+                foreach (WowRealm realm in activeRealms.GetRange(divider, activeRealms.Count - divider))
                 {
                     realmRunner = new(realm.Name, realm.WowNamespace);
                     backgroundTask = realmRunner.Run();
