@@ -12,7 +12,7 @@ namespace Feralas
         public int Id { get; set; }
         [Column("name")]
         public string Name { get; set; }
-        [Column("proffesion_id")]
+        [Column("profession_id")]
         public int ProfessionId { get; set; }
 
         [Column("skill_tier_id")]

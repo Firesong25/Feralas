@@ -45,47 +45,24 @@ namespace Feralas
                     }
                 }
 
-                // divide realms into 2 batches and process the big commodity runs in between
-                int divider = 0;
-                if (activeRealms.Count % 2 == 0)
-                {
-                    divider = activeRealms.Count / 2;
-                }
-                else
-                {
-                    divider = (activeRealms.Count - 1) / 2;
-                }
 
-                realmRunner = new("Commodities", "dynamic-us");
-                backgroundTask = realmRunner.Run();
-                //commodities runs take twice as long
-                await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
-
-
-                foreach (WowRealm realm in activeRealms.GetRange(0, divider))
+                foreach (WowRealm realm in activeRealms)
                 {
                     realmRunner = new(realm.Name, realm.WowNamespace);
                     backgroundTask = realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, pollingInterval, 0));
-                }
-
-                realmRunner = new("Commodities", "dynamic-eu");
-                backgroundTask = realmRunner.Run();
-                await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
-
-                foreach (WowRealm realm in activeRealms.GetRange(divider, activeRealms.Count - divider))
-                {
-                    realmRunner = new(realm.Name, realm.WowNamespace);
-                    backgroundTask = realmRunner.Run();
-                    await Task.Delay(new TimeSpan(0, pollingInterval, 0));
+                    if (realm.Name.ToLower().Contains("commodities"))
+                    {
+                        await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
+                    }
+                    else
+                    {
+                        await Task.Delay(new TimeSpan(0, pollingInterval, 0));
+                    }                    
                 }
 
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");
-
             }
-
-
         }
 
         public static async Task<List<WowRealm>> CreateActiveRealmList(int count)
@@ -111,12 +88,12 @@ namespace Feralas
 
             int usCount = (int)Math.Floor(half);
 
-            foreach (WowRealm realm in usRealms)
+            foreach (WowRealm realm in usRealms.OrderBy(l => l.Name))
             {
                 WowRealm testy = active.FirstOrDefault(l => l.ConnectedRealmId == (int)realm.ConnectedRealmId);
                 if (testy == null)
                 {
-                    active.Add((WowRealm)realm);
+                    active.Add(realm);
                 }
                 if (active.Count >= half)
                 {
@@ -124,7 +101,16 @@ namespace Feralas
                 }
             }
 
-            foreach (WowRealm realm in euRealms)
+            WowRealm usCommodities = new();
+            usCommodities.Name = "Commodities";
+            usCommodities.WowNamespace = "dynamic-us";
+            usCommodities.ConnectedRealmId = 12345;
+            usCommodities.Id = 12345;
+            active.Add(usCommodities);
+
+
+
+            foreach (WowRealm realm in euRealms.OrderBy(l => l.Name))
             {
                 WowRealm testy = active.FirstOrDefault(l => l.ConnectedRealmId == (int)realm.ConnectedRealmId);
                 if (testy == null)
@@ -138,7 +124,14 @@ namespace Feralas
                 }
             }
 
-            return active.OrderBy(l => l.Name).ToList();
+            WowRealm euCommodities = new();
+            euCommodities.Name = "Commodities";
+            euCommodities.WowNamespace = "dynamic-eu";
+            euCommodities.ConnectedRealmId = 54321;
+            euCommodities.Id = 54321;
+            active.Add(euCommodities);
+
+            return active.ToList();
 
 
         }
