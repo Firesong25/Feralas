@@ -25,9 +25,7 @@ namespace Feralas
                 AccessToken = tok.AccessToken.ToString();
             }
 
-            AccessToken = "UScrm608hoZJq8hso4zGW8caqUeXGhSoJE";
-
-            List<Auction> auctions = new List<Auction>();
+            List<Auction> auctions = new();
 
 
             string url = $"https://us.api.blizzard.com/data/wow/connected-realm/{realm.ConnectedRealmId}/auctions?namespace={realm.WowNamespace}&locale=en_US&access_token={AccessToken}";
