@@ -18,14 +18,14 @@ namespace Feralas
             if (tok.AccessToken == null)
             {
                 //LogMaker.LogToTable($"WowApi", $"Access token refused.  Use the old one...");
-                AccessToken = "USJTaraEEIsuGXHXvMnCOvDeJMVDh7ZSJg";
+                AccessToken = "UScrm608hoZJq8hso4zGW8caqUeXGhSoJE";
             }
             else
             {
                 AccessToken = tok.AccessToken.ToString();
             }
 
-
+            AccessToken = "UScrm608hoZJq8hso4zGW8caqUeXGhSoJE";
 
             List<Auction> auctions = new List<Auction>();
 
