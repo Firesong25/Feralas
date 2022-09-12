@@ -49,22 +49,8 @@ namespace Feralas
             foreach (Auction auction in jsonAuctions)
             {
                 extraAuction.AuctionId = auction.id;
-                // these notional connected realm ids make the queries much faster
-                if (tag.ToLower().Contains("us commodities"))
-                {
-                    extraAuction.PartitionKey = "12345";
-                    extraAuction.ConnectedRealmId = 12345;
-                }
-                else if (tag.ToLower().Contains("eu commodities"))
-                {
-                    extraAuction.PartitionKey = "54321";
-                    extraAuction.ConnectedRealmId = 54321;
-                }
-                else
-                {
-                    extraAuction.PartitionKey = realmId;
-                    extraAuction.ConnectedRealmId = Convert.ToInt32(extraAuction.PartitionKey);
-                }
+                extraAuction.PartitionKey = realmId;
+                extraAuction.ConnectedRealmId = Convert.ToInt32(extraAuction.PartitionKey);
                 extraAuction.LastSeenTime = DateTime.UtcNow;                
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
                 extraAuction.Quantity = auction.quantity;

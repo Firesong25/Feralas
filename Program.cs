@@ -71,15 +71,8 @@ namespace Feralas
             PostgresContext context = new();
             List<WowRealm> stored = context.WowRealms.ToList();
             List<WowRealm> active = new();
-            //I can't abandon the test realms for which I've already got data
-            WowRealm nordrassil = stored.FirstOrDefault(l => l.Name.ToLower() == "nordrassil" && l.WowNamespace.Contains("-eu"));
-            active.Add(nordrassil);
-            WowRealm kazzak = stored.FirstOrDefault(l => l.Id == 1305);
-            active.Add(kazzak);
-            WowRealm illidan = stored.FirstOrDefault(l => l.Name.ToLower() == "illidan" && l.WowNamespace.Contains("-us"));
-            active.Add(illidan);
-            WowRealm anvilmar = stored.FirstOrDefault(l => l.Name.ToLower() == "anvilmar" && l.WowNamespace.Contains("-us"));
-            active.Add(anvilmar);
+
+
 
             List<WowRealm> usRealms = stored.Where(l => l.WowNamespace.Contains("-us") && l.ConnectedRealmId > 0).OrderBy(l => l.Id).ToList();
             List<WowRealm> euRealms = stored.Where(l => l.WowNamespace.Contains("-eu") && l.ConnectedRealmId > 0).OrderBy(l => l.Id).ToList();
@@ -87,6 +80,13 @@ namespace Feralas
             double half = count / 2;
 
             int usCount = (int)Math.Floor(half);
+
+            WowRealm usCommodities = new();
+            usCommodities.Name = "Commodities";
+            usCommodities.WowNamespace = "dynamic-us";
+            usCommodities.ConnectedRealmId = 12345;
+            usCommodities.Id = 12345;
+            usRealms.Add(usCommodities);
 
             foreach (WowRealm realm in usRealms.OrderBy(l => l.Name))
             {
@@ -101,14 +101,12 @@ namespace Feralas
                 }
             }
 
-            WowRealm usCommodities = new();
-            usCommodities.Name = "Commodities";
-            usCommodities.WowNamespace = "dynamic-us";
-            usCommodities.ConnectedRealmId = 12345;
-            usCommodities.Id = 12345;
-            active.Add(usCommodities);
-
-
+            WowRealm euCommodities = new();
+            euCommodities.Name = "Commodities";
+            euCommodities.WowNamespace = "dynamic-eu";
+            euCommodities.ConnectedRealmId = 54321;
+            euCommodities.Id = 54321;
+            euRealms.Add(euCommodities);
 
             foreach (WowRealm realm in euRealms.OrderBy(l => l.Name))
             {
@@ -123,13 +121,6 @@ namespace Feralas
                     break;
                 }
             }
-
-            WowRealm euCommodities = new();
-            euCommodities.Name = "Commodities";
-            euCommodities.WowNamespace = "dynamic-eu";
-            euCommodities.ConnectedRealmId = 54321;
-            euCommodities.Id = 54321;
-            active.Add(euCommodities);
 
             return active.ToList();
 
