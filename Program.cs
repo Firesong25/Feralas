@@ -21,8 +21,6 @@ namespace Feralas
 
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for all realms starting.");
 
-            RealmRunner realmRunner = new("", "");
-
             // Test area
             //            LogMaker.Log($"DELETE THIS!");
 
@@ -48,7 +46,7 @@ namespace Feralas
 
                 foreach (WowRealm realm in activeRealms)
                 {
-                    realmRunner = new(realm.Name, realm.WowNamespace);
+                    RealmRunner realmRunner = new(realm);
                     backgroundTask = realmRunner.Run();
                     if (realm.Name.ToLower().Contains("commodities"))
                     {

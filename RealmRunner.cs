@@ -4,16 +4,14 @@ namespace Feralas
 {
     internal class RealmRunner
     {
-        public RealmRunner(string slug, string blizzardNamespace)
+        public RealmRunner(WowRealm realm)
         {
-            realmName = slug;
-            wowNamespace = blizzardNamespace;
+            Realm = realm;
             LastUpdate = DateTime.UtcNow;
         }
-        // https://docs.microsoft.com/en-gb/ef/core/dbcontext-configuration/#avoiding-dbcontext-threading-issues
-        //Using one context per thread to avoid collisions.
-        string realmName;
-        string wowNamespace;
+
+        public WowRealm Realm;
+
 
         public DateTime LastUpdate { get; private set; }
 
@@ -24,24 +22,14 @@ namespace Feralas
             try
             {
                 sw.Start();
-                string tag = $"{realmName} US";
-                if (wowNamespace.Contains("-eu"))
-                    tag = $"{realmName} EU";
-
-                if (realmName.ToLower().Contains("commodities") && wowNamespace.Contains("-us"))
-                {
-                    tag = "US commodities";
-                }
-
-                if (realmName.ToLower().Contains("commodities") && wowNamespace.Contains("-eu"))
-                {
-                    tag = "EU commodities";
-                }
+                string tag = $"{Realm.Name} US";
+                if (Realm.WowNamespace.Contains("-eu"))
+                    tag = $"{Realm.Name} EU";
 
                 string results = string.Empty;
 
                 //LogMaker.LogToTable($"RealmRunner",$"{tag} Auction house scan.");
-                string auctionsJson = await WowApi.GetRealmAuctions(realmName, wowNamespace, tag);
+                string auctionsJson = await WowApi.GetRealmAuctions(Realm, tag);
                 if (auctionsJson != string.Empty)
                 {
                     //LogMaker.LogToTable($"RealmRunner", $"The realm data for {tag} namespace is downloaded.");
@@ -64,14 +52,14 @@ namespace Feralas
             }
             catch (Exception ex)
             {
-                LogMaker.LogToTable($"RealmRunner",$"________________{realmName} Run Failed___________________");
+                LogMaker.LogToTable($"RealmRunner",$"________________{Realm.Name} Run Failed___________________");
                 LogMaker.LogToTable($"RealmRunner",ex.Message);
                 LogMaker.LogToTable($"RealmRunner","___________________________________");
                 LogMaker.LogToTable($"RealmRunner",ex.StackTrace);
                 LogMaker.LogToTable($"RealmRunner","___________________________________");
                 if (ex.InnerException != null)
                     LogMaker.LogToTable($"RealmRunner",$"{ex.InnerException}");
-                LogMaker.LogToTable($"RealmRunner",$"________________{realmName} Run Failed___________________");
+                LogMaker.LogToTable($"RealmRunner",$"________________{Realm.Name} Run Failed___________________");
             }
         }
 
