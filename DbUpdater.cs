@@ -13,7 +13,7 @@ namespace Feralas
 
             PostgresContext context = new PostgresContext();
 
-            await DbItemUpdaterAsync(context, auctions, tag);
+            //await DbItemUpdaterAsync(context, auctions, tag);
             string response = await DbAuctionsUpdaterAsync(context, auctions, tag);
             //Task backgroundNamer = DbItemNamerAsync(context);
             return response;

@@ -38,8 +38,12 @@ namespace Feralas
                 jsonAuctions = root.auctions.ToList();
                 
             }
-
-            await GetExtraItemsAsync();
+            //if (tag.ToLower().Contains("runetotem"))
+            //{
+            //    LogMaker.LogToTable($"Listings.cs", $"{jsonAuctions.Count}");
+            //}
+            
+            //await GetExtraItemsAsync();
             await GetLiveAuctionsAsync(tag);
         }
 

@@ -22,9 +22,13 @@ namespace Feralas
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for all realms starting.");
 
             // Test area
-            //            LogMaker.Log($"DELETE THIS!");
 
-
+            //LogMaker.LogToTable($"Program.cs", $"Delete This");
+            //PostgresContext context = new PostgresContext();
+            //WowRealm runeTotem = context.WowRealms.FirstOrDefault(l => l.Name.Equals("Runetotem"));
+            //RealmRunner runner = new(runeTotem);
+            //await runner.Run();
+            //return;
             //DELETE UNTIL THIS
 
             List<WowRealm> activeRealms = await CreateActiveRealmList(count);
