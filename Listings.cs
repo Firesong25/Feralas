@@ -34,7 +34,18 @@ namespace Feralas
                     connectedRealmString = root.connected_realm.href;
                     realmId = string.Concat(connectedRealmString.Where(char.IsNumber));
                 }
+                else
+                {
+
+                    LogMaker.LogToTable($"{tag}", $"No connected realm id found.");
+                }
                 
+                if (root.auctions == null || root.auctions.Count == 0)
+                {
+                    LogMaker.LogToTable($"{tag}", $"No auctions found.");
+                    File.WriteAllText(tag += ".json", json);
+                    return;
+                }
                 jsonAuctions = root.auctions.ToList();
                 
             }
@@ -62,9 +73,7 @@ namespace Feralas
                 extraAuction.UnitPrice = auction.unit_price;
                 extraAuction.ItemId = auction.item.id;
                 // ugly but effective
-                if (auction.time_left.ToLower().Contains("short") ||
-                        extraAuction.ConnectedRealmId == 12345 ||
-                        extraAuction.ConnectedRealmId == 54321)
+                if (auction.time_left.ToLower().Contains("short") || extraAuction.ConnectedRealmId == 12345 || extraAuction.ConnectedRealmId == 54321)
                 {
                     extraAuction.ShortTimeLeftSeen = true;
                 }

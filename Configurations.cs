@@ -44,13 +44,13 @@ namespace Feralas
                 bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
                 if (isLinux)
                 {
-                    if (BlizzardClientId == null && config.Contains("linux_clientId="))
+                    if (BlizzardClientId == null && config.Contains("linux_client_id"))
                     {
                         string[] configStrings = config.Split('=');
                         BlizzardClientId = configStrings[1].Trim();
                     }
 
-                    if (BlizzardClientPassword == null && config.Contains("linux_clientSecret="))
+                    if (BlizzardClientPassword == null && config.Contains("linux_client_secret="))
                     {
                         string[] configStrings = config.Split('=');
                         BlizzardClientPassword = configStrings[1].Trim();

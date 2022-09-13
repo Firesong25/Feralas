@@ -45,7 +45,7 @@ namespace Feralas
                 url = $"https://eu.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-eu&access_token={AccessToken}";
             }
 
-        
+
 
             try
             {
@@ -82,6 +82,11 @@ namespace Feralas
                     LogMaker.LogToTable($"{tag}", ex.Message);
                 }
             }
+            if (auctionsJson == string.Empty)
+            {
+
+                LogMaker.LogToTable($"WowApi", $"Blizzard sent an empty string for {tag}");
+            }
 
             return auctionsJson;
         }
@@ -105,7 +110,7 @@ namespace Feralas
                     var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
                     foreach (KeyValuePair<string, object> pair in result)
                     {
-                      if (pair.Value.ToString().Contains("connected-realm"))
+                        if (pair.Value.ToString().Contains("connected-realm"))
                         {
                             int realmspot = pair.Value.ToString().IndexOf("connected-realm");
                             string numString = pair.Value.ToString().Substring(realmspot, 20);
@@ -171,6 +176,12 @@ namespace Feralas
         private static async Task<Token> GetElibilityToken()
         {
             Token tok = new();
+
+            if (Configurations.BlizzardClientId == null)
+            {
+
+                LogMaker.LogToTable($"WowApi", $"Loading of credentials file has failed!");
+            }
 
             if (AccessToken == string.Empty || TokenTimer.ElapsedMilliseconds / 1000 > 3600 || !TokenTimer.IsRunning)
             {
