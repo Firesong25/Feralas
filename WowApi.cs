@@ -88,6 +88,14 @@ namespace Feralas
                 LogMaker.LogToTable($"WowApi", $"Blizzard sent an empty string for {tag}");
             }
 
+            if (auctionsJson.Contains("404"))
+            {
+
+                LogMaker.LogToTable($"WowApi", $"404 for {tag}");
+
+                LogMaker.LogToTable($"WowApi", $"{url}");
+            }
+
             return auctionsJson;
         }
 
