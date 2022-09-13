@@ -16,7 +16,7 @@ namespace Feralas
         WowAuction extraAuction = new();
         WowAuction trialAuction = new();
 
-        public async Task CreateLists(string json, string tag)
+        public async Task CreateLists(WowRealm realm, string json, string tag)
         {
             await Task.Delay(1); // happy now?
             LiveAuctions = new();
@@ -42,17 +42,17 @@ namespace Feralas
             //}
             
             //await GetExtraItemsAsync();
-            await GetLiveAuctionsAsync(tag);
+            await GetLiveAuctionsAsync(realm, tag);
         }
 
-        public async Task GetLiveAuctionsAsync(string tag)
+        public async Task GetLiveAuctionsAsync(WowRealm realm, string tag)
         {
             await Task.Delay(1); // happy now?
             foreach (Auction auction in jsonAuctions)
             {
                 extraAuction.AuctionId = auction.id;
                 extraAuction.PartitionKey = string.Empty;
-                extraAuction.ConnectedRealmId = Convert.ToInt32(extraAuction.PartitionKey);
+                extraAuction.ConnectedRealmId = (int)realm.ConnectedRealmId;
                 extraAuction.LastSeenTime = DateTime.UtcNow;                
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
                 extraAuction.Quantity = auction.quantity;

@@ -9,7 +9,7 @@ namespace Feralas
         public async Task<string> DoUpdatesAsync(WowRealm realm, string json, string tag)
         {
             Listings auctions = new();
-            await auctions.CreateLists(json, tag);
+            await auctions.CreateLists(realm, json, tag);
 
             PostgresContext context = new PostgresContext();
 

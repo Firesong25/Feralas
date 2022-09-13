@@ -11,17 +11,17 @@ namespace Feralas
     internal class Intersections
     {
         // https://stackoverflow.com/questions/37389027/use-linq-to-get-items-in-one-list-that-are-in-another-list
-        public async Task CompareListsFromJson(string json, string tag)
-        {
+        //public async Task CompareListsFromJson(string json, string tag)
+        //{
             
-            Listings auctions = new();
-            await auctions.CreateLists(json, tag);
-            List<WowAuction> incoming = auctions.LiveAuctions;
-            PostgresContext context = new();
-            List<WowAuction> stored = context.WowAuctions.ToList();
-            CompareLists(incoming, stored, tag);
+        //    Listings auctions = new();
+        //    await auctions.CreateLists(json, tag);
+        //    List<WowAuction> incoming = auctions.LiveAuctions;
+        //    PostgresContext context = new();
+        //    List<WowAuction> stored = context.WowAuctions.ToList();
+        //    CompareLists(incoming, stored, tag);
 
-        }
+        //}
 
         public void CompareLists(List<WowAuction> incoming, List<WowAuction> stored, string tag)
         {
