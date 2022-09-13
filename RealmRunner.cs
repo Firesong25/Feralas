@@ -34,7 +34,7 @@ namespace Feralas
                 {
                     //LogMaker.LogToTable($"RealmRunner", $"The realm data for {tag} namespace is downloaded.");
                     DbUpdater db = new();
-                    results = await db.DoUpdatesAsync(auctionsJson, tag);
+                    results = await db.DoUpdatesAsync(Realm, auctionsJson, tag);
                     LastUpdate = DateTime.UtcNow;
                 }
                 else

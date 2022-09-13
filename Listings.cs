@@ -9,8 +9,6 @@ namespace Feralas
 {
     public class Listings
     {
-
-        static string realmId = string.Empty;
         static List<Auction> jsonAuctions = new();
         public List<WowAuction> LiveAuctions { get; private set; }
         public List<WowItem> ExtraItems { get; private set; }
@@ -28,17 +26,6 @@ namespace Feralas
             {
                 Root root = JsonSerializer.Deserialize<Root>(json);
                 string connectedRealmString = string.Empty;
-
-                if (root.connected_realm != null)
-                {
-                    connectedRealmString = root.connected_realm.href;
-                    realmId = string.Concat(connectedRealmString.Where(char.IsNumber));
-                }
-                else
-                {
-
-                    LogMaker.LogToTable($"{tag}", $"No connected realm id found.");
-                }
                 
                 if (root.auctions == null || root.auctions.Count == 0)
                 {
@@ -64,7 +51,7 @@ namespace Feralas
             foreach (Auction auction in jsonAuctions)
             {
                 extraAuction.AuctionId = auction.id;
-                extraAuction.PartitionKey = realmId;
+                extraAuction.PartitionKey = string.Empty;
                 extraAuction.ConnectedRealmId = Convert.ToInt32(extraAuction.PartitionKey);
                 extraAuction.LastSeenTime = DateTime.UtcNow;                
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
