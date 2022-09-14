@@ -16,7 +16,7 @@ namespace Feralas
             Task backgroundTask;
 
             int count = 150;
-            int pollingInterval = 1;
+            TimeSpan pollingInterval = new(0, 0, 30);
             int z = 0;
 
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for all realms starting.");
@@ -24,11 +24,7 @@ namespace Feralas
             // Test area
 
             //LogMaker.LogToTable($"Program.cs", $"Delete This");
-            //PostgresContext context = new PostgresContext();
-            //WowRealm runeTotem = context.WowRealms.FirstOrDefault(l => l.Name.Equals("Runetotem"));
-            //RealmRunner runner = new(runeTotem);
-            //await runner.Run();
-            //return;
+
             //DELETE UNTIL THIS
 
             List<WowRealm> activeRealms = await CreateActiveRealmList(count);
@@ -54,12 +50,12 @@ namespace Feralas
                     backgroundTask = realmRunner.Run();
                     if (realm.Name.ToLower().Contains("commodities"))
                     {
-                        await Task.Delay(new TimeSpan(0, pollingInterval * 2, 0));
+                        await Task.Delay(pollingInterval * 2);
                     }
                     else
                     {
-                        await Task.Delay(new TimeSpan(0, pollingInterval, 0));
-                    }                    
+                        await Task.Delay(pollingInterval);
+                    }
                 }
 
                 z++;

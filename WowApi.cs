@@ -22,7 +22,7 @@ namespace Feralas
             }
             else
             {
-                AccessToken = tok.AccessToken.ToString();
+                AccessToken = tok.AccessToken;
             }
 
             List<Auction> auctions = new();
@@ -101,6 +101,11 @@ namespace Feralas
         public static async Task<int> GetConnectedRealmId(string wowNamespace, string realmName)
         {
             await Task.Delay(1);
+            realmName = realmName.ToLower();
+
+            Token tok = await GetElibilityToken();
+            AccessToken = tok.AccessToken;
+
             string url = $"https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={realmName}&access_token={AccessToken}";
 
             if (wowNamespace.Contains("-eu"))
@@ -109,24 +114,33 @@ namespace Feralas
             HttpClient client = new();
             int connectedRealmId = 0;
 
-            using (HttpResponseMessage response = client.GetAsync(url).Result)
+            try
             {
-                using (HttpContent content = response.Content)
+                using (HttpResponseMessage response = client.GetAsync(url).Result)
                 {
-                    var json = content.ReadAsStringAsync().Result;
-                    var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-                    foreach (KeyValuePair<string, object> pair in result)
+                    using (HttpContent content = response.Content)
                     {
-                        if (pair.Value.ToString().Contains("connected-realm"))
-                        {
-                            int realmspot = pair.Value.ToString().IndexOf("connected-realm");
-                            string numString = pair.Value.ToString().Substring(realmspot, 20);
+                        var json = content.ReadAsStringAsync().Result;
+                        var result = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
 
-                            connectedRealmId = Convert.ToInt32(string.Concat(numString.Where(char.IsNumber)));
-                            break;
+                        foreach (KeyValuePair<string, object> pair in result)
+                        {
+                            if (pair.Value.ToString().Contains("connected-realm"))
+                            {
+                                int realmspot = pair.Value.ToString().IndexOf("connected-realm");
+                                string numString = pair.Value.ToString().Substring(realmspot, 20);
+
+                                connectedRealmId = Convert.ToInt32(string.Concat(numString.Where(char.IsNumber)));
+                                break;
+                            }
                         }
+
                     }
                 }
+            }
+            catch
+            {
+                LogMaker.LogToTable($"WowApi", $"Exception getting connected realm id for {realmName} {wowNamespace}");
             }
             return connectedRealmId;
         }

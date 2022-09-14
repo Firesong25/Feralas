@@ -8,10 +8,23 @@ namespace Feralas
     {
         public async Task<string> DoUpdatesAsync(WowRealm realm, string json, string tag)
         {
+            PostgresContext context = new PostgresContext();
+
+            // Make sure the stored connect realm id is correct
+            int cid = await WowApi.GetConnectedRealmId(realm.WowNamespace, realm.Name);
+
+            if (cid != 0 && cid != (int)realm.ConnectedRealmId)
+            {
+                WowRealm brokenRealm = context.WowRealms.FirstOrDefault(l => l.Id == realm.Id);
+                brokenRealm.ConnectedRealmId = cid;
+                context.Update(brokenRealm);
+                context.SaveChanges();
+            }
+
             Listings auctions = new();
             await auctions.CreateLists(realm, json, tag);
 
-            PostgresContext context = new PostgresContext();
+            
 
             //await DbItemUpdaterAsync(context, auctions, tag);
             string response = await DbAuctionsUpdaterAsync(context, realm, auctions, tag);
