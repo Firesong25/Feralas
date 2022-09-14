@@ -16,10 +16,10 @@ namespace Feralas
             Task backgroundTask;
 
             int count = 150;
-            TimeSpan pollingInterval = new(0, 0, 30);
+            TimeSpan pollingInterval = new(0, 0, 15);
             int z = 0;
 
-            LogMaker.LogToTable("Cleardragon", $"Auctions scans for all realms starting.");
+            
 
             // Test area
 
@@ -27,7 +27,8 @@ namespace Feralas
 
             //DELETE UNTIL THIS
 
-            List<WowRealm> activeRealms = await CreateActiveRealmList(count);
+            List<WowRealm> activeRealms = await CreateActiveRealmList();
+            LogMaker.LogToTable("Cleardragon", $"Auctions scans for {activeRealms.Count} realms starting.");
             Stopwatch sw = new();
 
             while (true)
@@ -50,7 +51,7 @@ namespace Feralas
                     backgroundTask = realmRunner.Run();
                     if (realm.Name.ToLower().Contains("commodities"))
                     {
-                        await Task.Delay(pollingInterval * 2);
+                        await Task.Delay(pollingInterval * 4);
                     }
                     else
                     {
@@ -61,6 +62,38 @@ namespace Feralas
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete.");
             }
+        }
+
+        public static async Task<List<WowRealm>> CreateActiveRealmList()
+        {
+            await Task.Delay(1);  // stop compiler warnings on Linux
+            PostgresContext context = new();
+            List<WowRealm> allRealms = context.WowRealms.ToList();
+            List<WowRealm> activeRealms = new();
+            foreach (WowRealm realm in allRealms)
+            {
+                WowRealm trial = activeRealms.FirstOrDefault(l => l.ConnectedRealmId == realm.ConnectedRealmId);
+                if (trial == null)
+                {
+                    activeRealms.Add(realm);
+                }
+            }
+
+            WowRealm usCommodities = new();
+            usCommodities.Name = "Commodities";
+            usCommodities.WowNamespace = "dynamic-us";
+            usCommodities.ConnectedRealmId = 12345;
+            usCommodities.Id = 12345;
+            activeRealms.Add(usCommodities);
+
+            WowRealm euCommodities = new();
+            euCommodities.Name = "Commodities";
+            euCommodities.WowNamespace = "dynamic-eu";
+            euCommodities.ConnectedRealmId = 54321;
+            euCommodities.Id = 54321;
+            activeRealms.Add(euCommodities);
+
+            return activeRealms.OrderBy(l => l.WowNamespace).ThenBy(l => l.Name).ToList();
         }
 
         public static async Task<List<WowRealm>> CreateActiveRealmList(int count)

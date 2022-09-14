@@ -101,15 +101,15 @@ namespace Feralas
         public static async Task<int> GetConnectedRealmId(string wowNamespace, string realmName)
         {
             await Task.Delay(1);
-            realmName = realmName.ToLower();
+            string realmSlug = realmName.ToLower();
 
             Token tok = await GetElibilityToken();
             AccessToken = tok.AccessToken;
 
-            string url = $"https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={realmName}&access_token={AccessToken}";
+            string url = $"https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={realmSlug}&access_token={AccessToken}";
 
             if (wowNamespace.Contains("-eu"))
-                url = $"https://eu.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-eu&realms.name.en_US={realmName}&access_token={AccessToken}";
+                url = $"https://eu.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-eu&realms.name.en_US={realmSlug}&access_token={AccessToken}";
 
             HttpClient client = new();
             int connectedRealmId = 0;
@@ -140,7 +140,7 @@ namespace Feralas
             }
             catch
             {
-                LogMaker.LogToTable($"WowApi", $"Exception getting connected realm id for {realmName} {wowNamespace}");
+                LogMaker.LogToTable($"WowApi", $"Exception getting connected realm id for {realmName} {wowNamespace}. Trying using cached one from database.");
             }
             return connectedRealmId;
         }
