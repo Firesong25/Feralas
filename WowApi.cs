@@ -61,8 +61,8 @@ namespace Feralas
             }
             catch (Exception ex)
             {
-                LogMaker.LogToTable($"{tag}", "WowApi problem.");
-                LogMaker.LogToTable($"{tag}", ex.Message);
+                //LogMaker.LogToTable($"{tag}", "WowApi problem.");
+                //LogMaker.LogToTable($"{tag}", ex.Message);
             }
 
             if (auctionsJson == string.Empty)
@@ -78,8 +78,26 @@ namespace Feralas
                 }
                 catch (Exception ex)
                 {
-                    LogMaker.LogToTable($"{tag}", "WowApi crash found again after 2 minutes.");
-                    LogMaker.LogToTable($"{tag}", ex.Message);
+                    //LogMaker.LogToTable($"{tag}", "WowApi error found after 2 attempts.");
+                    //LogMaker.LogToTable($"{tag}", ex.Message);
+                }
+            }
+
+            if (auctionsJson == string.Empty)
+            {
+                await Task.Delay(new TimeSpan(0, 2, 0));
+                try
+                {
+                    HttpClient client = new();
+                    client.Timeout = TimeSpan.FromMinutes(1);
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    HttpContent content = response.Content;
+                    auctionsJson = await content.ReadAsStringAsync();
+                }
+                catch (Exception ex)
+                {
+                    //LogMaker.LogToTable($"{tag}", "WowApi error found after 3 attempts.");
+                    //LogMaker.LogToTable($"{tag}", ex.Message);
                 }
             }
             if (auctionsJson == string.Empty)

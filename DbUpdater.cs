@@ -125,6 +125,8 @@ namespace Feralas
                     stlseen.ShortTimeLeftSeen = true;
                 }
 
+                int stlTest = auctionsToUpdate.Where(l => l.ShortTimeLeftSeen == true).Count();
+
                 // Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
                 absentListings = storedAuctions.Except(incoming).ToList();
 
@@ -132,6 +134,7 @@ namespace Feralas
                 soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
                 if (soldListings.Count > 0)
                 {
+                    soldListings.ForEach(l => l.Sold = true);
                     context.WowAuctions.UpdateRange(soldListings);
                     context.SaveChanges();
                 }
@@ -183,176 +186,6 @@ namespace Feralas
             }
 
             return response;
-        }
-
-        async Task BulkAuctionsUpdate(PostgresContext context, string tag, List<WowAuction> targetList)
-        {
-            Stopwatch totalMs = Stopwatch.StartNew();
-            int batchSize = 25000;
-            int totalUpdates = targetList.Count;
-
-            if (totalUpdates == 0)
-            {
-                return;
-            }
-
-            if (batchSize > totalUpdates)
-            {
-                context.WowAuctions.UpdateRange(targetList);
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch
-                {
-                    LogMaker.LogToTable($"{tag}", $"{totalUpdates} to be updated for {tag}  but update failed as it thinks zero to be updated.");
-                }
-            }
-            else
-            {
-                Stopwatch sw = Stopwatch.StartNew();
-                targetList = targetList.OrderBy(l => l.PartitionKey).ThenBy(l => l.AuctionId).ThenBy(l => l.ItemId).ToList();
-                //LogMaker.Log($"Sorting the list of {totalUpdates} auctions took {sw.ElapsedMilliseconds}.");
-                sw.Restart();
-
-                int saveCount = Convert.ToInt32(totalUpdates / batchSize);
-                int remainderSaveCount = totalUpdates % batchSize;
-
-
-                // do the small batch first
-                List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
-                try
-                {
-                    context.WowAuctions.UpdateRange(lastBatchOfAuctions);
-                    await context.SaveChangesAsync(true);
-                    //LogMaker.Log($"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
-                    sw.Restart();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    LogMaker.LogToTable($"{tag} ", $"Concurrency exception when updating {remainderSaveCount} auctions.");
-                }
-                catch (Exception ex)
-                {
-                    LogMaker.LogToTable($"{tag}", ex.Message);
-                }
-
-
-                int runCount = 0;
-
-                // now do the remaining batches
-                while (runCount < totalUpdates - batchSize)
-                {
-                    List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
-                    try
-                    {
-                        context.WowAuctions.UpdateRange(batchOfAuctions);
-                        context.SaveChanges();
-                        runCount += batchSize;
-                        //LogMaker.Log($"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
-                        sw.Restart();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        LogMaker.LogToTable($"{tag} ", $"Concurrency exception when updating 25000 auctions from index {runCount}.");
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMaker.LogToTable($"{tag}", ex.Message);
-                    }
-
-
-
-                }
-
-                //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
-            }
-
-            async Task BulkAuctionsDelete(PostgresContext context, string tag, List<WowAuction> targetList)
-            {
-                Stopwatch totalMs = Stopwatch.StartNew();
-                int batchSize = 25000;
-                int totalUpdates = targetList.Count;
-
-                if (totalUpdates == 0)
-                {
-                    return;
-                }
-
-                //LogMaker.LogToTable($"{tag}", $"{totalUpdates} auctions to delete.");
-
-                if (batchSize > totalUpdates)
-                {
-                    context.WowAuctions.RemoveRange(targetList);
-                    try
-                    {
-                        context.SaveChanges();
-                    }
-                    catch
-                    {
-                        LogMaker.LogToTable($"{tag}", $"{totalUpdates} to be deleted for {tag} but delete failed as it thinks zero to be deleted.");
-                    }
-                }
-                else
-                {
-                    Stopwatch sw = Stopwatch.StartNew();
-                    targetList = targetList.OrderBy(l => l.PartitionKey).ThenBy(l => l.AuctionId).ThenBy(l => l.ItemId).ToList();
-                    //LogMaker.LogToTable($"{tag}", $"Sorting the list of {totalUpdates} auctions to delete took {sw.ElapsedMilliseconds}.");
-                    sw.Restart();
-
-                    int saveCount = Convert.ToInt32(totalUpdates / batchSize);
-                    int remainderSaveCount = totalUpdates % batchSize;
-
-                    try
-                    {
-                        // do the small batch first
-                        List<WowAuction> lastBatchOfAuctions = targetList.GetRange(totalUpdates - remainderSaveCount - 1, remainderSaveCount);
-                        context.WowAuctions.RemoveRange(lastBatchOfAuctions);
-                        await context.SaveChangesAsync(true);
-                        //LogMaker.LogToTable($"{tag}", $"Batch of {remainderSaveCount} auctions took {sw.ElapsedMilliseconds}.");
-                        sw.Restart();
-
-
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting {remainderSaveCount} auctions.");
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMaker.LogToTable($"{tag}", ex.Message);
-                    }
-
-                    int runCount = 0;
-
-                    // now do the remaining batches
-                    while (runCount < totalUpdates - batchSize)
-                    {
-                        List<WowAuction> batchOfAuctions = targetList.GetRange(runCount, batchSize);
-                        try
-                        {
-                            context.WowAuctions.RemoveRange(batchOfAuctions);
-                            context.SaveChanges();
-                            runCount += batchSize;
-                            //LogMaker.LogToTable($"{tag}", $"Batch of {batchSize} auctions took {sw.ElapsedMilliseconds}.");
-                            await Task.Delay(1000);
-                        }
-                        catch (DbUpdateConcurrencyException)
-                        {
-                            LogMaker.LogToTable($"{tag} ", $"Concurrency exception when deleting 25000 auctions from index {runCount}.");
-                        }
-                        catch (Exception ex)
-                        {
-                            LogMaker.LogToTable($"{tag}", ex.Message);
-                        }
-
-                        sw.Restart();
-                    }
-
-                }
-
-                //LogMaker.Log($"All updates took {totalMs.ElapsedMilliseconds}.");
-            }
         }
 
         async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)
