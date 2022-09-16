@@ -42,29 +42,29 @@ namespace Feralas
 
                 if (results != string.Empty)
                 {
-                    LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
+                    //LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
                 }
                 else
                 {
                     LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for failed run.");
                 }
-                
+
             }
             catch (Exception ex)
             {
-                LogMaker.LogToTable($"RealmRunner",$"________________{Realm.Name} Run Failed___________________");
-                LogMaker.LogToTable($"RealmRunner",ex.Message);
-                LogMaker.LogToTable($"RealmRunner","___________________________________");
-                LogMaker.LogToTable($"RealmRunner",ex.StackTrace);
-                LogMaker.LogToTable($"RealmRunner","___________________________________");
+                LogMaker.LogToTable($"RealmRunner", $"________________{Realm.Name} Run Failed___________________");
+                LogMaker.LogToTable($"RealmRunner", ex.Message);
+                LogMaker.LogToTable($"RealmRunner", "___________________________________");
+                LogMaker.LogToTable($"RealmRunner", ex.StackTrace);
+                LogMaker.LogToTable($"RealmRunner", "___________________________________");
                 if (ex.InnerException != null)
-                    LogMaker.LogToTable($"RealmRunner",$"{ex.InnerException}");
-                LogMaker.LogToTable($"RealmRunner",$"________________{Realm.Name} Run Failed___________________");
+                    LogMaker.LogToTable($"RealmRunner", $"{ex.InnerException}");
+                LogMaker.LogToTable($"RealmRunner", $"________________{Realm.Name} Run Failed___________________");
             }
         }
 
 
-        static string GetReadableTimeByMs(long ms)
+        public static string GetReadableTimeByMs(long ms)
         {
             // Based on answers https://stackoverflow.com/questions/9993883/convert-milliseconds-to-human-readable-time-lapse
             TimeSpan t = TimeSpan.FromMilliseconds(ms);

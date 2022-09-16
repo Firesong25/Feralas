@@ -58,6 +58,11 @@ namespace Feralas
                 extraAuction.Quantity = auction.quantity;
                 extraAuction.Buyout = auction.buyout;
                 extraAuction.UnitPrice = auction.unit_price;
+
+                if (extraAuction.UnitPrice == 0 && extraAuction.Buyout > 0 && extraAuction.Quantity == 1)
+                {
+                    extraAuction.UnitPrice = (long)extraAuction.Buyout;
+                }
                 extraAuction.ItemId = auction.item.id;
                 // ugly but effective
                 if (auction.time_left.ToLower().Contains("short") || extraAuction.ConnectedRealmId == 12345 || extraAuction.ConnectedRealmId == 54321)
