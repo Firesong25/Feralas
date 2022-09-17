@@ -15,8 +15,8 @@ namespace Feralas
 
         [Column("profession_id")]
         public int ProfessionId { get; set; }
-        [Column("skill_tier")]
-        public int SkillTier { get; set; }
+        [Column("skill_tier_id")]
+        public int SkillTierId { get; set; }
         [Column("category")]
         public string Category { get; set; }
         [Column("reagents")]
