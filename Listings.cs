@@ -12,15 +12,31 @@ namespace Feralas
         static List<Auction> jsonAuctions = new();
         public List<WowAuction> LiveAuctions { get; private set; }
         public List<WowItem> ExtraItems { get; private set; }
+        // crafted items filter
+        static List<long> craftedItemIds = new();
 
         WowAuction extraAuction = new();
         WowAuction trialAuction = new();
 
         public async Task CreateLists(WowRealm realm, string json, string tag)
         {
-            await Task.Delay(1); // happy now?
             LiveAuctions = new();
             ExtraItems = new();
+
+            // populate the crafted items filter
+            if (craftedItemIds.Count == 0)
+            {
+                PostgresContext context = new PostgresContext();
+                List<CraftedItem> craftedItems = context.CraftedItems.ToList();
+                foreach (CraftedItem craftedItem in craftedItems)
+                {
+                    if (!craftedItemIds.Contains(craftedItem.Id))
+                    {
+                        craftedItemIds.Add(craftedItem.Id);
+                    }
+                }
+            }
+
 
             if (json.Length > 0)
             {
@@ -36,10 +52,6 @@ namespace Feralas
                 jsonAuctions = root.auctions.ToList();
                 
             }
-            //if (tag.ToLower().Contains("runetotem"))
-            //{
-            //    LogMaker.LogToTable($"Listings.cs", $"{jsonAuctions.Count}");
-            //}
             
             //await GetExtraItemsAsync();
             await GetLiveAuctionsAsync(realm, tag);

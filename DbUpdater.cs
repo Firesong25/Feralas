@@ -35,8 +35,9 @@ namespace Feralas
         public async Task<string> DbAuctionsUpdaterAsync(PostgresContext context, WowRealm realm, Listings auctions, string tag)
         {
             string response = string.Empty;
-
             Stopwatch sw = Stopwatch.StartNew();
+
+            int estimatedSoldCutoff = 36;
 
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
@@ -57,6 +58,7 @@ namespace Feralas
              * 4. Incoming listings that have a SHORT duration are overpriced. List in shortTimeLeftAuctions and mark them in auctionsToUpdate
              * 5. Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
              * 6. Stored listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
+             * 7. Stored listings that have had suration less than 36 hours are assumed to have been sold.  Put in soldlistings and update stored records.
              * 7. Stored listings that are in absentListings and marked SHORT are expired. Delete them.
              * 8. Stored listings that are still live are in auctionsToUpdate. Update their timestamps.
              * 9. Make a report of all changes.
@@ -132,9 +134,18 @@ namespace Feralas
 
                 // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
                 soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
+
+                foreach (WowAuction auction in absentListings)
+                {
+                    TimeSpan duration = auction.LastSeenTime - auction.FirstSeenTime;
+                    if (duration.Hours < estimatedSoldCutoff)
+                    {
+                        soldListings.Add(auction);
+                    }
+                }
                 if (soldListings.Count > 0)
                 {
-                    soldListings.ForEach(l => l.Sold = true);
+                    soldListings.ForEach(l => l.Sold = true);  // is this good code?
                     context.WowAuctions.UpdateRange(soldListings);
                     context.SaveChanges();
                 }
