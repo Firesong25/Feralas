@@ -142,12 +142,11 @@ namespace Feralas
                 absentListings = storedAuctions.Except(incoming).ToList();
 
                 // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
-                soldListings = absentListings.Where(l => l.ShortTimeLeftSeen == false).ToList();
 
                 foreach (WowAuction auction in absentListings)
                 {
                     TimeSpan duration = auction.LastSeenTime - auction.FirstSeenTime;
-                    if (duration.Hours < estimatedSoldCutoff)
+                    if (duration.Hours < estimatedSoldCutoff || auction.ShortTimeLeftSeen == true)
                     {
                         soldListings.Add(auction);
                     }
