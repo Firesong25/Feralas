@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Feralas
@@ -14,7 +15,8 @@ namespace Feralas
         [Column("wow_namespace")]
         public string WowNamespace { get; set; } = null!;
         [Column("connected_realm_id")]
-        public int? ConnectedRealmId { get; set; }
+        [DefaultValue(0)]
+        public int ConnectedRealmId { get; set; }
         [Column("activley_scanning")]
         public bool IsActivelyScanning { get; set; }
     }

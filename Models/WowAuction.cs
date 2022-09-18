@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -31,7 +32,8 @@ namespace Feralas
         [Column("unit_price")]
         public long UnitPrice { get; set; }
         [Column("buyout")]
-        public long? Buyout { get; set; }
+        [DefaultValue(0)]
+        public long Buyout { get; set; }
 
         // Why does this fail on Id?
         public bool Equals(WowAuction other)

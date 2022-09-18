@@ -63,7 +63,7 @@ namespace Feralas
             foreach (Auction auction in jsonAuctions)
             {
                 extraAuction.AuctionId = auction.id;                
-                extraAuction.ConnectedRealmId = (int)realm.ConnectedRealmId;
+                extraAuction.ConnectedRealmId = realm.ConnectedRealmId;
                 extraAuction.PartitionKey = realm.ConnectedRealmId.ToString();
                 extraAuction.LastSeenTime = DateTime.UtcNow;                
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);

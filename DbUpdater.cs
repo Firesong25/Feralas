@@ -24,7 +24,7 @@ namespace Feralas
             Listings auctions = new();
             await auctions.CreateLists(realm, json, tag);
 
-            
+
 
             //await DbItemUpdaterAsync(context, auctions, tag);
             string response = await DbAuctionsUpdaterAsync(context, realm, auctions, tag);
@@ -37,7 +37,7 @@ namespace Feralas
             string response = string.Empty;
             Stopwatch sw = Stopwatch.StartNew();
 
-            int estimatedSoldCutoff = 36;
+            int estimatedSoldCutoff = 24;
 
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
@@ -101,6 +101,15 @@ namespace Feralas
                 auction.FirstSeenTime = DateTime.SpecifyKind(auction.FirstSeenTime, DateTimeKind.Utc);
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
+                if (auction.UnitPrice == 0 && auction.Buyout > 0)
+                {
+                    auction.UnitPrice = auction.Buyout;
+                }
+
+                if (!auction.PartitionKey.Equals(realm.ConnectedRealmId.ToString()))
+                {
+                    auction.PartitionKey = realm.ConnectedRealmId.ToString();
+                }
             }
             if (auctionsToAdd.Count > 0)
             {
@@ -168,6 +177,17 @@ namespace Feralas
                 {
                     auction.LastSeenTime = DateTime.UtcNow;
                     auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
+
+                    if (auction.UnitPrice == 0 && auction.Buyout > 0)
+                    {
+                        auction.UnitPrice = auction.Buyout;
+                    }
+
+                    if (!auction.PartitionKey.Equals(realm.ConnectedRealmId.ToString()))
+                    {
+                        auction.PartitionKey = realm.ConnectedRealmId.ToString();
+                    }
+
                 }
                 if (auctionsToUpdate.Count > 0)
                 {
@@ -192,7 +212,7 @@ namespace Feralas
                 else
                 {
                     int deletedCount = absentListings.Count + ancientListings.Count;
-                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 48 hours old purged. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
+                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
                 }
             }
 
