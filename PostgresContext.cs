@@ -20,21 +20,4 @@ namespace Feralas
         }
     }
 
-    public class DigitalOceanContext : DbContext
-    {
-        public DbSet<WowAuction> WowAuctions { get; set; }
-        public DbSet<OldItem> WowItems { get; set; }
-
-        public DbSet<OldRealm> WowRealms { get; set; }
-
-        public DbSet<Recipe> Recipes { get; set; }
-
-        public DbSet<CraftedItem> CraftedItems { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(Configurations.DigitalOceanConnectionString);
-            optionsBuilder.EnableSensitiveDataLogging();
-        }
-    }
 }
