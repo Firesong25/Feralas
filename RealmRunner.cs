@@ -42,7 +42,7 @@ namespace Feralas
 
                 if (results != string.Empty)
                 {
-                    //LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
+                    LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
                 }
                 else
                 {
