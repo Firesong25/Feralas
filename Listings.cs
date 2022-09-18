@@ -62,16 +62,16 @@ namespace Feralas
             await Task.Delay(1); // happy now?
             foreach (Auction auction in jsonAuctions)
             {
-                extraAuction.AuctionId = auction.id;
-                extraAuction.PartitionKey = string.Empty;
+                extraAuction.AuctionId = auction.id;                
                 extraAuction.ConnectedRealmId = (int)realm.ConnectedRealmId;
+                extraAuction.PartitionKey = realm.ConnectedRealmId.ToString();
                 extraAuction.LastSeenTime = DateTime.UtcNow;                
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
                 extraAuction.Quantity = auction.quantity;
                 extraAuction.Buyout = auction.buyout;
                 extraAuction.UnitPrice = auction.unit_price;
 
-                if (extraAuction.UnitPrice == 0 && extraAuction.Buyout > 0 && extraAuction.Quantity == 1)
+                if (extraAuction.UnitPrice == 0 && extraAuction.Buyout > 0)
                 {
                     extraAuction.UnitPrice = (long)extraAuction.Buyout;
                 }
