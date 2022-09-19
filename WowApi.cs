@@ -6,9 +6,8 @@ namespace Feralas
     public static class WowApi
     {
         static Token holdToken = new();
-        static string AccessToken = string.Empty; //"USYhT4u8tJEZOB87HD43PofR4gZ9r5iTGq";
+        static string AccessToken = string.Empty; 
         static Stopwatch TokenTimer = new();
-        static Dictionary<string, int> CachedConnectedRealmIds = new();
         public static async Task<string> GetRealmAuctions(WowRealm realm, string tag)
         {
             string auctionsJson = string.Empty;

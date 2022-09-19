@@ -14,8 +14,9 @@ namespace Feralas
 
             if (cid != 0 && cid != (int)realm.ConnectedRealmId)
             {
+                LogMaker.LogToTable($"IMPORTANT", $"{realm.Name} has changed connected realm id from {realm.ConnectedRealmId} to {cid}.");
                 WowRealm brokenRealm = context.WowRealms.FirstOrDefault(l => l.Id == realm.Id);
-                brokenRealm.ConnectedRealmId = cid;
+                brokenRealm.ConnectedRealmId = cid;                
                 context.Update(brokenRealm);
                 context.SaveChanges();
             }
@@ -172,13 +173,14 @@ namespace Feralas
             }
             else
             {
+                int liveAuctionsCount = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count();
                 if (ancientListings.Count == 0)
                 {
-                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated and {unsoldListings.Count} deleted. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
+                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated and {unsoldListings.Count} deleted. {tag} has {liveAuctionsCount} live auctions";
                 }
                 else
                 {
-                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
+                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {tag} has {liveAuctionsCount} live auctions";
                 }
             }
 
