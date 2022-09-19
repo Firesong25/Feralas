@@ -9,8 +9,7 @@ namespace Feralas
     {
         [Column("id")]
         [Key]
-        public Guid Id { get; set; }
-        [Column("partition_key")]
+        public int Id { get; set; }
         public string PartitionKey { get; set; }
         [Column("connected_realm_id")]
         public int ConnectedRealmId { get; set; }
@@ -20,9 +19,9 @@ namespace Feralas
         public DateTime FirstSeenTime { get; set; }
         [Column("last_seen_time")]
         public DateTime LastSeenTime { get; set; }
-        [Column("short_time_left_seen")]
-        public bool ShortTimeLeftSeen { get; set; }
-
+        [Column("time_left")]
+        [DefaultValue(TimeLeft.VERY_LONG)]
+        public TimeLeft TimeLeft { get; set; }
         [Column("sold")]
         public bool Sold { get; set; }
         [Column("quantity")]
@@ -35,7 +34,6 @@ namespace Feralas
         [DefaultValue(0)]
         public long Buyout { get; set; }
 
-        // Why does this fail on Id?
         public bool Equals(WowAuction other)
         {
             if (other is null)
@@ -46,7 +44,14 @@ namespace Feralas
 
         public override bool Equals(object obj) => Equals(obj as WowAuction);
         public override int GetHashCode() => (AuctionId, ItemId).GetHashCode();
+    }
 
+    public enum TimeLeft
+    {
+        VERY_LONG,
+        LONG,
+        MEDIUM,
+        SHORT
     }
 
 }

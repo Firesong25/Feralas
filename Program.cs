@@ -19,15 +19,16 @@ namespace Feralas
             TimeSpan pollingInterval = new(0, 0, 30);
             int z = 0;
 
-            
+            List<WowRealm> activeRealms = await CreateActiveRealmList();
 
             // Test area
 
             //LogMaker.LogToTable($"Program.cs", $"Delete This");
+            //PostgresContext context = new PostgresContext();
+
 
             //DELETE UNTIL THIS
 
-            List<WowRealm> activeRealms = await CreateActiveRealmList();
             LogMaker.LogToTable("Cleardragon", $"Auctions scans for {activeRealms.Count} realms starting.");
             Stopwatch sw = new();
 
@@ -61,7 +62,7 @@ namespace Feralas
                 }
 
                 z++;
-                LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+                LogMaker.LogToTable("Cleardragon", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");
             }
         }
 

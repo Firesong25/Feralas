@@ -13,6 +13,7 @@ namespace Feralas
 
         public DbSet<CraftedItem> CraftedItems { get; set; }
 
+ 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(Configurations.OVHConnectionString);

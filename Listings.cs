@@ -42,7 +42,7 @@ namespace Feralas
             {
                 Root root = JsonSerializer.Deserialize<Root>(json);
                 string connectedRealmString = string.Empty;
-                
+
                 if (root.auctions == null || root.auctions.Count == 0)
                 {
                     LogMaker.LogToTable($"{tag}", $"No auctions found.");
@@ -50,9 +50,9 @@ namespace Feralas
                     return;
                 }
                 jsonAuctions = root.auctions.ToList();
-                
+
             }
-            
+
             //await GetExtraItemsAsync();
             await GetLiveAuctionsAsync(realm, tag);
         }
@@ -62,10 +62,10 @@ namespace Feralas
             await Task.Delay(1); // happy now?
             foreach (Auction auction in jsonAuctions)
             {
-                extraAuction.AuctionId = auction.id;                
+                extraAuction.AuctionId = auction.id;
                 extraAuction.ConnectedRealmId = realm.ConnectedRealmId;
                 extraAuction.PartitionKey = realm.ConnectedRealmId.ToString();
-                extraAuction.LastSeenTime = DateTime.UtcNow;                
+                extraAuction.LastSeenTime = DateTime.UtcNow;
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
                 extraAuction.Quantity = auction.quantity;
                 extraAuction.Buyout = auction.buyout;
@@ -76,13 +76,26 @@ namespace Feralas
                     extraAuction.UnitPrice = (long)extraAuction.Buyout;
                 }
                 extraAuction.ItemId = auction.item.id;
-                // ugly but effective
-                if (auction.time_left.ToLower().Contains("short") || extraAuction.ConnectedRealmId == 12345 || extraAuction.ConnectedRealmId == 54321)
+
+                if (auction.time_left.ToLower().Contains("very"))
                 {
-                    extraAuction.ShortTimeLeftSeen = true;
+                    extraAuction.TimeLeft = TimeLeft.VERY_LONG;
                 }
-                    
+                else if (auction.time_left.ToLower().Contains("medium"))
+                {
+                    extraAuction.TimeLeft = TimeLeft.MEDIUM;
+                }
+                else if (auction.time_left.ToLower().Contains("short"))
+                {
+                    extraAuction.TimeLeft = TimeLeft.SHORT;
+                }
+                else
+                {
+                    extraAuction.TimeLeft = TimeLeft.LONG;
+                }
+
                 LiveAuctions.Add(extraAuction);
+
                 extraAuction = new();
             }
         }

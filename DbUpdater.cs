@@ -37,8 +37,6 @@ namespace Feralas
             string response = string.Empty;
             Stopwatch sw = Stopwatch.StartNew();
 
-            int estimatedSoldCutoff = 24;
-
             await Task.Delay(1);
             List<WowAuction> incoming = auctions.LiveAuctions;
             List<WowAuction> storedAuctions = new();
@@ -55,13 +53,10 @@ namespace Feralas
              * 1. We only work with stored listings that are less than 48 hours old in the same realm group which are in storedAuctions
              * 2. Listings that are over 7 days old are in the ancientListings list and deleted
              * 3. Listings that have not been seen before are timestamped and stored in auctionsToAdd             
-             * 4. Incoming listings that have a SHORT duration are overpriced. List in shortTimeLeftAuctions and mark them in auctionsToUpdate
-             * 5. Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
-             * 6. Stored listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
-             * 7. Stored listings that have had suration less than 36 hours are assumed to have been sold.  Put in soldlistings and update stored records.
-             * 7. Stored listings that are in absentListings and marked SHORT are expired. Delete them.
-             * 8. Stored listings that are still live are in auctionsToUpdate. Update their timestamps.
-             * 9. Make a report of all changes.
+             * 4. Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
+             * 5. Only stored listings that are in absentListings and marked VERY_LONG are assumed sold.
+             * 6. Stored listings that are still live are in auctionsToUpdate. Update their timestamps and timeleft tags.
+             * 7. Make a report of all changes.
              */
             string PartitionKey = realm.ConnectedRealmId.ToString();
             // the live dataset is less than 48 hours old, is not sold and is same realm
@@ -70,6 +65,7 @@ namespace Feralas
 
             // We only work with stored listings that are less than 48 hours old in the same realm group which are in storedAuctions
             storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
+            List<WowAuction> ancientStoredListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == true).ToList();
 
             // Listings that are over 7 days old are in the ancientListings list and deleted
 
@@ -91,6 +87,8 @@ namespace Feralas
                 context.WowAuctions.RemoveRange(ancientListings);
                 context.SaveChanges();
             }
+
+            int vl = incoming.Where(l => l.TimeLeft == TimeLeft.VERY_LONG).Count();
 
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
@@ -124,20 +122,6 @@ namespace Feralas
                 // Listings in both incoming and stored are to be updated
                 auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
 
-                // Incoming listings that have a SHORT duration are overpriced. List in shortTimeLeftAuctions and mark them in auctionsToUpdate
-                shortTimeLeftAuctions = incoming.Where(l => l.ShortTimeLeftSeen == true).ToList();
-                markAsShortTimeLeft = auctionsToUpdate.Intersect(shortTimeLeftAuctions).ToList();
-
-                foreach (WowAuction mark in markAsShortTimeLeft)
-                {
-                    WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l == mark);  // fastest 8ms
-                    // WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l.Id == mark.Id); // 25ms
-                    // WowAuction stlseen = auctionsToUpdate.FirstOrDefault(l => l.AuctionId == mark.AuctionId && l.ItemId == mark.ItemId); //12ms
-                    stlseen.ShortTimeLeftSeen = true;
-                }
-
-                int stlTest = auctionsToUpdate.Where(l => l.ShortTimeLeftSeen == true).Count();
-
                 // Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
                 absentListings = storedAuctions.Except(incoming).ToList();
 
@@ -145,8 +129,7 @@ namespace Feralas
 
                 foreach (WowAuction auction in absentListings)
                 {
-                    TimeSpan duration = auction.LastSeenTime - auction.FirstSeenTime;
-                    if (duration.Hours < estimatedSoldCutoff || auction.ShortTimeLeftSeen == true)
+                    if (auction.TimeLeft.Equals(TimeLeft.VERY_LONG))
                     {
                         soldListings.Add(auction);
                     }
@@ -159,33 +142,17 @@ namespace Feralas
                 }
 
 
-                // Stored listings that are in absentListings and marked SHORT are expired. Delete them.
-                List<WowAuction> deleteTheseAbsentListings = absentListings.Where(l => l.ShortTimeLeftSeen == true).ToList();
-                if (deleteTheseAbsentListings.Count > 0)
-                {
-                    context.WowAuctions.RemoveRange(deleteTheseAbsentListings);
-                    context.SaveChanges();
-                }
-
-
                 // Sold auctions do not need any further updates
                 auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
 
-                // Stored listings that are still live are in auctionsToUpdate.  Update their timestamps.
+                // Stored listings that are still live are in auctionsToUpdate.  Update their timestamps and time left stamps.
                 foreach (WowAuction auction in auctionsToUpdate)
                 {
                     auction.LastSeenTime = DateTime.UtcNow;
                     auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
 
-                    if (auction.UnitPrice == 0 && auction.Buyout > 0)
-                    {
-                        auction.UnitPrice = auction.Buyout;
-                    }
-
-                    if (!auction.PartitionKey.Equals(realm.ConnectedRealmId.ToString()))
-                    {
-                        auction.PartitionKey = realm.ConnectedRealmId.ToString();
-                    }
+                    // is there a better way to do timestamps???
+                    auction.TimeLeft = incoming.FirstOrDefault(l => l.Equals(auction)).TimeLeft;
 
                 }
                 if (auctionsToUpdate.Count > 0)
