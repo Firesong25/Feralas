@@ -157,7 +157,7 @@ namespace Feralas
             }
             catch
             {
-                LogMaker.LogToTable($"WowApi", $"Exception getting connected realm id for {realmName} {wowNamespace}. Trying using cached one from database.");
+                LogMaker.LogToTable($"WowApi", $"<b>Exception getting connected realm id for {realmName} {wowNamespace}. Trying using cached one from database.</b>");
             }
             return connectedRealmId;
         }

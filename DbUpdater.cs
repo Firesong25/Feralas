@@ -41,12 +41,12 @@ namespace Feralas
             List<WowAuction> incoming = auctions.LiveAuctions;
             List<WowAuction> storedAuctions = new();
             List<WowAuction> soldListings = new();
+            List<WowAuction> unsoldListings = new();
             List<WowAuction> ancientListings = new();
-            List<WowAuction> shortTimeLeftAuctions = new();
             List<WowAuction> auctionsToAdd = new();
             List<WowAuction> auctionsToUpdate = new();
             List<WowAuction> absentListings = new();
-            List<WowAuction> unsoldListings = new();
+            
 
             /*
              * Goals:
@@ -124,11 +124,11 @@ namespace Feralas
                 // Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
                 absentListings = storedAuctions.Except(incoming).ToList();
 
-                // Listings that are in absentListings and are not marked for SHORT duration are sold. Put in soldListings and update stored records.
+                // Listings that are in absentListings and are not marked for SHORT or MEDIUM duration are sold. Put in soldListings and delete the others.
 
                 foreach (WowAuction auction in absentListings)
                 {
-                    if (auction.TimeLeft.Equals(TimeLeft.VERY_LONG))
+                    if (auction.TimeLeft.Equals(TimeLeft.VERY_LONG) || auction.TimeLeft.Equals(TimeLeft.LONG))
                     {
                         soldListings.Add(auction);
                     }
@@ -141,6 +141,7 @@ namespace Feralas
                 {
                     soldListings.ForEach(l => l.Sold = true);  // is this good code?
                     context.WowAuctions.UpdateRange(soldListings);
+                    context.WowAuctions.RemoveRange(unsoldListings);
                     context.SaveChanges();
                 }
 
