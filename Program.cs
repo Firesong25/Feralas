@@ -27,7 +27,7 @@ namespace Feralas
 
             //DELETE UNTIL THIS
 
-            LogMaker.LogToTable("Cleardragon", $"Auctions scans for {activeRealms.Count} realms starting.");
+            LogMaker.LogToTable("Cleardragon", $"<b><em>Auctions scans for {activeRealms.Count} realms starting.</em></b>");
             Stopwatch sw = new();
 
             while (true)
@@ -60,7 +60,7 @@ namespace Feralas
                 }
 
                 z++;
-                LogMaker.LogToTable("Cleardragon", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");
+                LogMaker.LogToTable("Cleardragon", $"<b><em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em></b>");
             }
         }
 
