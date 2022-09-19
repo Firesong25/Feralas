@@ -14,8 +14,6 @@ namespace Feralas
 
             await Configurations.Init();
             Task backgroundTask;
-
-            int count = 150;
             TimeSpan pollingInterval = new(0, 0, 30);
             int z = 0;
 

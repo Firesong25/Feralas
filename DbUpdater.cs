@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Feralas
@@ -46,7 +45,7 @@ namespace Feralas
             List<WowAuction> auctionsToAdd = new();
             List<WowAuction> auctionsToUpdate = new();
             List<WowAuction> absentListings = new();
-            List<WowAuction> markAsShortTimeLeft = new();
+            List<WowAuction> unsoldListings = new();
 
             /*
              * Goals:
@@ -65,7 +64,6 @@ namespace Feralas
 
             // We only work with stored listings that are less than 48 hours old in the same realm group which are in storedAuctions
             storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
-            List<WowAuction> ancientStoredListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == true).ToList();
 
             // Listings that are over 7 days old are in the ancientListings list and deleted
 
@@ -133,6 +131,10 @@ namespace Feralas
                     {
                         soldListings.Add(auction);
                     }
+                    else
+                    {
+                        unsoldListings.Add(auction);
+                    }
                 }
                 if (soldListings.Count > 0)
                 {
@@ -170,14 +172,12 @@ namespace Feralas
             }
             else
             {
-                absentListings = absentListings.Except(soldListings).ToList();
                 if (ancientListings.Count == 0)
                 {
-                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated and {absentListings.Count} deleted. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
+                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated and {unsoldListings.Count} deleted. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
                 }
                 else
                 {
-                    int deletedCount = absentListings.Count + ancientListings.Count;
                     response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
                 }
             }
