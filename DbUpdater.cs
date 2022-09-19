@@ -173,9 +173,7 @@ namespace Feralas
             }
             else
             {
-                int liveAuctionsCount = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count();
-                liveAuctionsCount -= unsoldListings.Count;
-
+                int liveAuctionsCount = auctionsToAdd.Count + auctionsToUpdate.Count;
                 if (ancientListings.Count == 0)
                 {
                     response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated and {unsoldListings.Count} deleted. {tag} has {liveAuctionsCount} live auctions";
