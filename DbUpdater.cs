@@ -189,6 +189,11 @@ namespace Feralas
 
             foreach (WowRealm ur in updatedRealms)
             {
+                string idTag = $"{ur.Name} US";
+                if (ur.WowNamespace.Contains("-eu"))
+                    idTag = $"{ur.Name} EU";
+                int liveAuctionsCount = auctionsToAdd.Count + auctionsToUpdate.Count;
+                response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {idTag} has {liveAuctionsCount} live auctions";
                 ur.ScanReport = response;
                 ur.LastScanTime = DateTime.UtcNow;
             }

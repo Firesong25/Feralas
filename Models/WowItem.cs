@@ -10,7 +10,7 @@ namespace Feralas
         [Column("item_id")]
         public int ItemId { get; set; }
         [Column("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [Column("bonus_list")]
         public string? BonusList { get; set; }
         [Column("pet_breed_id")]
