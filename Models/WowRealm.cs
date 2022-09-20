@@ -23,5 +23,7 @@ namespace Feralas
         public bool IsActivelyScanning { get; set; }
         [Column("last_scan_time")]
         public DateTime LastScanTime { get; set; }
+        [Column("scan_report")]
+        public string ScanReport { get; set; }
     }
 }

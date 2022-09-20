@@ -185,6 +185,7 @@ namespace Feralas
                 }
             }
 
+            realm.ScanReport = response;
             realm.LastScanTime = DateTime.UtcNow;
             context.WowRealms.Update(realm);
             context.SaveChanges();
