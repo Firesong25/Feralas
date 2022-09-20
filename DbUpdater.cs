@@ -185,9 +185,15 @@ namespace Feralas
                 }
             }
 
-            realm.ScanReport = response;
-            realm.LastScanTime = DateTime.UtcNow;
-            context.WowRealms.Update(realm);
+            List<WowRealm> updatedRealms = context.WowRealms.Where(l => l.ConnectedRealmId.Equals(realm.ConnectedRealmId)).ToList();
+
+            foreach (WowRealm ur in updatedRealms)
+            {
+                ur.ScanReport = response;
+                ur.LastScanTime = DateTime.UtcNow;
+            }
+        
+            context.WowRealms.UpdateRange(updatedRealms);
             context.SaveChanges();
 
             return response;
