@@ -185,8 +185,13 @@ namespace Feralas
                 }
             }
 
+            realm.LastScanTime = DateTime.UtcNow;
+            context.WowRealms.Update(realm);
+            context.SaveChanges();
+
             return response;
         }
+        
 
         async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)
         {

@@ -12,6 +12,8 @@ namespace Feralas
         public int Id { get; set; }
         [Column("name")]
         public string Name { get; set; } = null!;
+        [Column("realm_slug")]
+        public string RealmSlug { get; set; }
         [Column("wow_namespace")]
         public string WowNamespace { get; set; } = null!;
         [Column("connected_realm_id")]
@@ -19,14 +21,7 @@ namespace Feralas
         public int ConnectedRealmId { get; set; }
         [Column("activley_scanning")]
         public bool IsActivelyScanning { get; set; }
-    }
-
-    public class OldRealm
-    {
-        [Key]
-        public int Id { get; set; }
-        public string Name { get; set; } = null!;
-        public string WowNamespace { get; set; } = null!;
-        public int? ConnectedRealmId { get; set; }
+        [Column("last_scan_time")]
+        public DateTime LastScanTime { get; set; }
     }
 }
