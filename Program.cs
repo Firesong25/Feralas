@@ -79,19 +79,19 @@ namespace Feralas
                 }
             }
 
-            WowRealm usCommodities = new();
-            usCommodities.Name = "Commodities";
-            usCommodities.WowNamespace = "dynamic-us";
-            usCommodities.ConnectedRealmId = 12345;
-            usCommodities.Id = 12345;
-            activeRealms.Add(usCommodities);
+            //WowRealm usCommodities = new();
+            //usCommodities.Name = "Commodities";
+            //usCommodities.WowNamespace = "dynamic-us";
+            //usCommodities.ConnectedRealmId = 12345;
+            //usCommodities.Id = 12345;
+            //activeRealms.Add(usCommodities);
 
-            WowRealm euCommodities = new();
-            euCommodities.Name = "Commodities";
-            euCommodities.WowNamespace = "dynamic-eu";
-            euCommodities.ConnectedRealmId = 54321;
-            euCommodities.Id = 54321;
-            activeRealms.Add(euCommodities);
+            //WowRealm euCommodities = new();
+            //euCommodities.Name = "Commodities";
+            //euCommodities.WowNamespace = "dynamic-eu";
+            //euCommodities.ConnectedRealmId = 54321;
+            //euCommodities.Id = 54321;
+            //activeRealms.Add(euCommodities);
 
             return activeRealms.OrderBy(l => l.WowNamespace).ThenBy(l => l.Name).ToList();
         }

@@ -193,8 +193,11 @@ namespace Feralas
                 ur.LastScanTime = DateTime.UtcNow;
             }
         
-            context.WowRealms.UpdateRange(updatedRealms);
-            context.SaveChanges();
+            if (updatedRealms.Count > 0)
+            {
+                context.WowRealms.UpdateRange(updatedRealms);
+                context.SaveChanges();
+            }
 
             return response;
         }
