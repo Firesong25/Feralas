@@ -54,12 +54,13 @@ namespace Feralas
             {
                 LogMaker.LogToTable($"RealmRunner", $"________________{Realm.Name} Run Failed___________________");
                 LogMaker.LogToTable($"RealmRunner", ex.Message);
-                LogMaker.LogToTable($"RealmRunner", "___________________________________");
-                LogMaker.LogToTable($"RealmRunner", ex.StackTrace);
-                LogMaker.LogToTable($"RealmRunner", "___________________________________");
+                LogMaker.LogToTable($"RealmRunner", "________________StackTrace___________________");
+                LogMaker.LogToTable($"RealmRunner", ex.StackTrace);                
                 if (ex.InnerException != null)
+                {
+                    LogMaker.LogToTable($"RealmRunner", "________________InnerException___________________");
                     LogMaker.LogToTable($"RealmRunner", $"{ex.InnerException}");
-                LogMaker.LogToTable($"RealmRunner", $"________________{Realm.Name} Run Failed___________________");
+                }                    
             }
         }
 

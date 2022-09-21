@@ -6,13 +6,13 @@ namespace Feralas
     public static class WowApi
     {
         static Token holdToken = new();
-        static string AccessToken = string.Empty; 
+        static string AccessToken = string.Empty;
         static Stopwatch TokenTimer = new();
         public static async Task<string> GetRealmAuctions(WowRealm realm, string tag)
         {
             string auctionsJson = string.Empty;
 
-            Token tok = await GetElibilityToken();
+            Token tok = await GetElibilityToken(tag);
 
             if (tok.AccessToken == null)
             {
@@ -51,54 +51,43 @@ namespace Feralas
                 HttpClientHandler hch = new HttpClientHandler();
                 hch.Proxy = null;
                 hch.UseProxy = false;
-
                 HttpClient client = new HttpClient(hch);
                 client.Timeout = TimeSpan.FromMinutes(1);
                 HttpResponseMessage response = await client.GetAsync(url);
                 HttpContent content = response.Content;
                 auctionsJson = await content.ReadAsStringAsync();
+
+                if (auctionsJson == string.Empty)
+                {
+                    await Task.Delay(new TimeSpan(0, 1, 0));
+                    client = new();
+                    client.Timeout = TimeSpan.FromMinutes(1);
+                    response = await client.GetAsync(url);
+                    content = response.Content;
+                    auctionsJson = await content.ReadAsStringAsync();
+                }
+
+                if (auctionsJson == string.Empty)
+                {
+                    await Task.Delay(new TimeSpan(0, 1, 0));
+                    client = new();
+                    client.Timeout = TimeSpan.FromMinutes(1);
+                    response = await client.GetAsync(url);
+                    content = response.Content;
+                    auctionsJson = await content.ReadAsStringAsync();
+                }
             }
             catch (Exception ex)
             {
-                //LogMaker.LogToTable($"{tag}", "WowApi problem.");
-                //LogMaker.LogToTable($"{tag}", ex.Message);
-            }
-
-            if (auctionsJson == string.Empty)
-            {
-                await Task.Delay(new TimeSpan(0, 1, 0));
-                try
+                LogMaker.LogToTable($"{tag}", "WowApi problem.");
+                LogMaker.LogToTable($"{tag}", ex.Message);
+                if (!ex.InnerException.Equals(null))
                 {
-                    HttpClient client = new();
-                    client.Timeout = TimeSpan.FromMinutes(1);
-                    HttpResponseMessage response = await client.GetAsync(url);
-                    HttpContent content = response.Content;
-                    auctionsJson = await content.ReadAsStringAsync();
-                }
-                catch (Exception ex)
-                {
-                    //LogMaker.LogToTable($"{tag}", "WowApi error found after 2 attempts.");
-                    //LogMaker.LogToTable($"{tag}", ex.Message);
+                    LogMaker.LogToTable($"{tag}", "________________InnerException___________________");
+                    LogMaker.LogToTable($"{tag}", $"{ex.InnerException}");
                 }
             }
 
-            if (auctionsJson == string.Empty)
-            {
-                await Task.Delay(new TimeSpan(0, 2, 0));
-                try
-                {
-                    HttpClient client = new();
-                    client.Timeout = TimeSpan.FromMinutes(1);
-                    HttpResponseMessage response = await client.GetAsync(url);
-                    HttpContent content = response.Content;
-                    auctionsJson = await content.ReadAsStringAsync();
-                }
-                catch (Exception ex)
-                {
-                    //LogMaker.LogToTable($"{tag}", "WowApi error found after 3 attempts.");
-                    //LogMaker.LogToTable($"{tag}", ex.Message);
-                }
-            }
             if (auctionsJson == string.Empty)
             {
 
@@ -118,15 +107,14 @@ namespace Feralas
         public static async Task<int> GetConnectedRealmId(string wowNamespace, string realmName)
         {
             await Task.Delay(1);
-            string realmSlug = realmName.ToLower();
 
-            Token tok = await GetElibilityToken();
+            Token tok = await GetElibilityToken(realmName);
             AccessToken = tok.AccessToken;
 
-            string url = $"https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={realmSlug}&access_token={AccessToken}";
+            string url = $"https://us.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-us&realms.name.en_US={realmName}&access_token={AccessToken}";
 
             if (wowNamespace.Contains("-eu"))
-                url = $"https://eu.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-eu&realms.name.en_US={realmSlug}&access_token={AccessToken}";
+                url = $"https://eu.api.blizzard.com/data/wow/search/connected-realm?namespace=dynamic-eu&realms.name.en_US={realmName}&access_token={AccessToken}";
 
             HttpClient client = new();
             int connectedRealmId = 0;
@@ -157,7 +145,7 @@ namespace Feralas
             }
             catch
             {
-                LogMaker.LogToTable($"WowApi", $"<b>Exception getting connected realm id for {realmName} {wowNamespace}. Trying using cached one from database.</b>");
+                //LogMaker.LogToTable($"WowApi", $"Exception getting connected realm id for {realmName} {wowNamespace}. Trying using cached one from database.");
             }
             return connectedRealmId;
         }
@@ -211,7 +199,7 @@ namespace Feralas
         }
 
 
-        private static async Task<Token> GetElibilityToken()
+        private static async Task<Token> GetElibilityToken(string tag)
         {
             Token tok = new();
 
@@ -250,8 +238,13 @@ namespace Feralas
                 catch (Exception ex)
                 {
 
-                    LogMaker.LogToTable($"WowApi", $"------------------- Error getting access token------------------");
-                    LogMaker.LogToTable($"WowApi", $"{ex.Message}");
+                    LogMaker.LogToTable($"{tag}", $"------------------- Error getting access token------------------");
+                    LogMaker.LogToTable($"{tag}", $"{ex.Message}");
+                    if (!ex.InnerException.Equals(null))
+                    {
+                        LogMaker.LogToTable($"{tag}", "________________InnerException___________________");
+                        LogMaker.LogToTable($"{tag}", $"{ex.InnerException}");
+                    }
                     return null;
                 }
 

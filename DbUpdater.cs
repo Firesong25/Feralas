@@ -10,7 +10,7 @@ namespace Feralas
             PostgresContext context = new PostgresContext();
 
             // Make sure the stored connect realm id is correct
-            int cid = await WowApi.GetConnectedRealmId(realm.WowNamespace, realm.Name);
+            int cid = await WowApi.GetConnectedRealmId(realm.WowNamespace, realm.RealmSlug);
 
             if (cid != 0 && cid != (int)realm.ConnectedRealmId)
             {

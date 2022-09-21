@@ -27,7 +27,7 @@ namespace Feralas
 
             //DELETE UNTIL THIS
 
-            LogMaker.LogToTable("Cleardragon", $"<b><em>Auctions scans for {activeRealms.Count} realms starting.</em></b>");
+            LogMaker.LogToTable("Cleardragon", $"<em>Auctions scans for {activeRealms.Count} realms starting.</em>");
             Stopwatch sw = new();
 
             while (true)
@@ -60,7 +60,7 @@ namespace Feralas
                 }
 
                 z++;
-                LogMaker.LogToTable("Cleardragon", $"<b><em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em></b>");
+                LogMaker.LogToTable("Cleardragon", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");
             }
         }
 
@@ -78,20 +78,6 @@ namespace Feralas
                     activeRealms.Add(realm);
                 }
             }
-
-            //WowRealm usCommodities = new();
-            //usCommodities.Name = "Commodities";
-            //usCommodities.WowNamespace = "dynamic-us";
-            //usCommodities.ConnectedRealmId = 12345;
-            //usCommodities.Id = 12345;
-            //activeRealms.Add(usCommodities);
-
-            //WowRealm euCommodities = new();
-            //euCommodities.Name = "Commodities";
-            //euCommodities.WowNamespace = "dynamic-eu";
-            //euCommodities.ConnectedRealmId = 54321;
-            //euCommodities.Id = 54321;
-            //activeRealms.Add(euCommodities);
 
             return activeRealms.OrderBy(l => l.WowNamespace).ThenBy(l => l.Name).ToList();
         }
