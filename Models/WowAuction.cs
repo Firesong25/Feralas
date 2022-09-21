@@ -10,7 +10,7 @@ namespace Feralas
         [Column("id")]
         [Key]
         public int Id { get; set; }
-        public string PartitionKey { get; set; }
+        //public string PartitionKey { get; set; }
         [Column("connected_realm_id")]
         public int ConnectedRealmId { get; set; }
         [Column("auction_id")]

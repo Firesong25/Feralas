@@ -58,7 +58,7 @@ namespace Feralas
              * 6. Stored listings that are still live are in auctionsToUpdate. Update their timestamps and timeleft tags.
              * 7. Make a report of all changes.
              */
-            string PartitionKey = realm.ConnectedRealmId.ToString();
+
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
             DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7, 0, 0, 0);
@@ -69,26 +69,13 @@ namespace Feralas
             // Listings that are over 7 days old are in the ancientListings list and deleted
 
 
-            if (tag.ToLower().Contains("commodities"))
-            {
-                sw.Restart();
-                // there is no value in analysing sold commodity listings as deals have to be done today
-                ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId).ToList();
-                ancientListings = ancientListings.Except(incoming).ToList();
-            }
-            else
-            {
-                ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
-            }
+            ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
 
             if (ancientListings.Count > 0)
             {
                 context.WowAuctions.RemoveRange(ancientListings);
                 context.SaveChanges();
             }
-
-            int vl = incoming.Where(l => l.TimeLeft == TimeLeft.VERY_LONG).Count();
-
 
             // Listings that have not been seen before are timestamped and stored in auctionsToAdd
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
@@ -102,15 +89,19 @@ namespace Feralas
                 {
                     auction.UnitPrice = auction.Buyout;
                 }
-
-                if (!auction.PartitionKey.Equals(realm.ConnectedRealmId.ToString()))
-                {
-                    auction.PartitionKey = realm.ConnectedRealmId.ToString();
-                }
             }
+
             if (auctionsToAdd.Count > 0)
             {
                 context.WowAuctions.AddRange(auctionsToAdd);
+                context.SaveChanges();
+            }
+
+            if (tag.ToLower().Contains("commodities"))
+            {
+                // Remove absent commodity listings
+                absentListings = storedAuctions.Except(incoming).ToList();
+                context.WowAuctions.RemoveRange(absentListings);
                 context.SaveChanges();
             }
 
@@ -125,7 +116,6 @@ namespace Feralas
                 absentListings = storedAuctions.Except(incoming).ToList();
 
                 // Listings that are in absentListings and are not marked for SHORT or MEDIUM duration are sold. Put in soldListings and delete the others.
-
                 foreach (WowAuction auction in absentListings)
                 {
                     if (auction.TimeLeft.Equals(TimeLeft.VERY_LONG) || auction.TimeLeft.Equals(TimeLeft.LONG))
@@ -154,8 +144,6 @@ namespace Feralas
                 {
                     auction.LastSeenTime = DateTime.UtcNow;
                     auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
-
-                    // is there a better way to do timestamps???
                     auction.TimeLeft = incoming.FirstOrDefault(l => l.Equals(auction)).TimeLeft;
 
                 }
@@ -164,27 +152,10 @@ namespace Feralas
                     context.WowAuctions.UpdateRange(auctionsToUpdate);
                     context.SaveChanges();
                 }
-            }
+            }           
 
 
             // Make a report of all changes.
-            if (tag.ToLower().Contains("commodities"))
-            {
-                response = $"{auctionsToAdd.Count} auctions added and {ancientListings.Count} deleted. {tag} has {context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).Count()} live auctions";
-            }
-            else
-            {
-                int liveAuctionsCount = auctionsToAdd.Count + auctionsToUpdate.Count;
-                if (ancientListings.Count == 0)
-                {
-                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated and {unsoldListings.Count} deleted. {tag} has {liveAuctionsCount} live auctions";
-                }
-                else
-                {
-                    response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {tag} has {liveAuctionsCount} live auctions";
-                }
-            }
-
             List<WowRealm> updatedRealms = context.WowRealms.Where(l => l.ConnectedRealmId.Equals(realm.ConnectedRealmId)).ToList();
 
             foreach (WowRealm ur in updatedRealms)
@@ -194,6 +165,12 @@ namespace Feralas
                     idTag = $"{ur.Name} EU";
                 int liveAuctionsCount = auctionsToAdd.Count + auctionsToUpdate.Count;
                 response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {idTag} has {liveAuctionsCount} live auctions";
+
+                if (ur.Name.Contains("Commodities"))
+                {
+                    response = $"There are {incoming.Count} auctions for {tag}.";
+                }
+
                 ur.ScanReport = response;
                 ur.LastScanTime = DateTime.UtcNow;
             }
@@ -205,98 +182,6 @@ namespace Feralas
             }
 
             return response;
-        }
-        
-
-        async Task DbItemUpdaterAsync(PostgresContext context, Listings auctions, string tag)
-        {
-            List<WowItem> storedItems = context.WowItems.ToList();
-            List<WowItem> itemsToAdd = new();
-            WowItem trialItem = new();
-
-            foreach (WowItem item in auctions.ExtraItems)
-            {
-                trialItem = storedItems.FirstOrDefault(l => l.ItemId == item.ItemId);
-
-                if (trialItem == null)
-                {
-                    item.Id = Guid.NewGuid();
-                    itemsToAdd.Add(item);
-                }
-
-                trialItem = new();
-            }
-
-            try
-            {
-                await context.WowItems.AddRangeAsync(itemsToAdd);
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
-                LogMaker.LogToTable($"DbUpdater", "UPDATE FOR ITEMS FAILED");
-                LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
-                LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
-                if (ex.InnerException.ToString() != null)
-                {
-                    LogMaker.LogToTable($"DbUpdater", $"{ex.InnerException}");
-                }
-                LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
-            }
-
-
-        }
-
-        async Task DbItemNamerAsync(PostgresContext context)
-        {
-            List<WowItem> itemsToBeNamed = context.WowItems.Where(l => l.Name.Length < 2).ToList();
-
-            if (itemsToBeNamed.Count > 100)
-            {
-                itemsToBeNamed = itemsToBeNamed.Take(100).ToList();
-            }
-
-
-            foreach (WowItem itemm in itemsToBeNamed)
-            {
-                try
-                {
-                    itemm.Name = await WowApi.GetItemName(itemm.ItemId);
-                    if (itemm.Name.Length > 2)
-                    {
-                        // LogMaker.LogToTable($"DbUpdater", $"{itemm.Name} added to the database.");
-                    }
-
-                }
-                catch
-                {
-                    //LogMaker.LogToTable($"DbUpdater", $"Blizzard API timeout");
-                    await Task.Delay(1000 * 60);
-                }
-                await Task.Delay(100);
-            }
-
-            if (itemsToBeNamed.Count > 0)
-            {
-                try
-                {
-                    context.WowItems.UpdateRange(itemsToBeNamed);
-                    await context.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
-                    LogMaker.LogToTable($"DbUpdater", "-----------NAMING FOR ITEMS FAILED");
-                    LogMaker.LogToTable($"DbUpdater", $"{ex.Message}");
-                    LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
-                    if (ex.InnerException.ToString() != null)
-                    {
-                        LogMaker.LogToTable($"DbUpdater", $"{ex.InnerException}");
-                    }
-                    LogMaker.LogToTable($"DbUpdater", "_______________DbUpdater_______________");
-                }
-            }
         }
     }
 }

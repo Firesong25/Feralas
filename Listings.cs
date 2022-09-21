@@ -64,7 +64,6 @@ namespace Feralas
             {
                 extraAuction.AuctionId = auction.id;
                 extraAuction.ConnectedRealmId = realm.ConnectedRealmId;
-                extraAuction.PartitionKey = realm.ConnectedRealmId.ToString();
                 extraAuction.LastSeenTime = DateTime.UtcNow;
                 extraAuction.LastSeenTime = DateTime.SpecifyKind(extraAuction.LastSeenTime, DateTimeKind.Utc);
                 extraAuction.Quantity = auction.quantity;
