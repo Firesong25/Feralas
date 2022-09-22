@@ -76,5 +76,37 @@ namespace Feralas
             List<WowAuction> soldListings = new List<WowAuction>();
             return soldListings;
         }
+
+        public void CreateMatsDictionary()
+        {
+            Dictionary<int, int> tradeItemsCosts = new();
+            tradeItemsCosts.Add(180733, 90000);
+            tradeItemsCosts.Add(178787, 1250000);
+            tradeItemsCosts.Add(20815, 800);
+            tradeItemsCosts.Add(6217, 124);
+            tradeItemsCosts.Add(187812, 2500000);
+            tradeItemsCosts.Add(3371, 400);
+            tradeItemsCosts.Add(183950, 90000);
+            tradeItemsCosts.Add(172056, 5000);
+            tradeItemsCosts.Add(172057, 3750);
+            tradeItemsCosts.Add(172058, 4500);
+            tradeItemsCosts.Add(172059, 4250);
+            tradeItemsCosts.Add(178786, 3500);
+            tradeItemsCosts.Add(159, 5);
+            tradeItemsCosts.Add(30817, 5);
+            tradeItemsCosts.Add(2687, 2);
+            tradeItemsCosts.Add(177062, 110000);
+            tradeItemsCosts.Add(183955, 90000);
+            tradeItemsCosts.Add(177061, 5000);
+            tradeItemsCosts.Add(173060, 1000);
+            tradeItemsCosts.Add(180732, 500);
+            tradeItemsCosts.Add(175886, 1000);
+            tradeItemsCosts.Add(183953, 90000);
+            tradeItemsCosts.Add(39489, 5000);
+            tradeItemsCosts.Add(39505, 750);
+            tradeItemsCosts.Add(183952, 90000);
+            tradeItemsCosts.Add(173168, 10000);
+            tradeItemsCosts.Add(183954, 90000);
+        }
     }
 }
