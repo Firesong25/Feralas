@@ -121,7 +121,6 @@ namespace Feralas
                 context.SaveChanges();
             }
 
-
             // Make a report of all changes.
             List<WowRealm> updatedRealms = context.WowRealms.Where(l => l.ConnectedRealmId.Equals(realm.ConnectedRealmId)).ToList();
             int auctionCount = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId &&

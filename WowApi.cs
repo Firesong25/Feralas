@@ -45,7 +45,6 @@ namespace Feralas
             }
 
 
-
             try
             {
                 HttpClientHandler hch = new HttpClientHandler();
@@ -57,29 +56,38 @@ namespace Feralas
                 HttpContent content = response.Content;
                 auctionsJson = await content.ReadAsStringAsync();
 
-                if (auctionsJson == string.Empty)
-                {
-                    await Task.Delay(new TimeSpan(0, 1, 0));
-                    client = new();
-                    client.Timeout = TimeSpan.FromMinutes(1);
-                    response = await client.GetAsync(url);
-                    content = response.Content;
-                    auctionsJson = await content.ReadAsStringAsync();
-                }
+            }
+            catch
+            {}
 
-                if (auctionsJson == string.Empty)
-                {
-                    await Task.Delay(new TimeSpan(0, 1, 0));
-                    client = new();
-                    client.Timeout = TimeSpan.FromMinutes(1);
-                    response = await client.GetAsync(url);
-                    content = response.Content;
-                    auctionsJson = await content.ReadAsStringAsync();
-                }
+            try
+            {
+                HttpClientHandler hch = new HttpClientHandler();
+                hch.Proxy = null;
+                hch.UseProxy = false;
+                HttpClient client = new HttpClient(hch);
+                client.Timeout = TimeSpan.FromMinutes(1);
+                HttpResponseMessage response = await client.GetAsync(url);
+                HttpContent content = response.Content;
+                auctionsJson = await content.ReadAsStringAsync();
+            }
+            catch
+            {}
+
+            try
+            {
+                HttpClientHandler hch = new HttpClientHandler();
+                hch.Proxy = null;
+                hch.UseProxy = false;
+                HttpClient client = new HttpClient(hch);
+                client.Timeout = TimeSpan.FromMinutes(1);
+                HttpResponseMessage response = await client.GetAsync(url);
+                HttpContent content = response.Content;
+                auctionsJson = await content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
-                LogMaker.LogToTable($"{tag}", "WowApi problem.");
+                LogMaker.LogToTable($"{tag}", "WowApi problem after 3 attempts.");
                 LogMaker.LogToTable($"{tag}", ex.Message);
                 if (!ex.InnerException.Equals(null))
                 {
