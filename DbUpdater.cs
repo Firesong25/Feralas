@@ -23,12 +23,7 @@ namespace Feralas
 
             Listings auctions = new();
             await auctions.CreateLists(realm, json, tag);
-
-
-
-            //await DbItemUpdaterAsync(context, auctions, tag);
             string response = await DbAuctionsUpdaterAsync(context, realm, auctions, tag);
-            //Task backgroundNamer = DbItemNamerAsync(context);
             return response;
         }
 

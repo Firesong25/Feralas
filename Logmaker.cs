@@ -75,7 +75,7 @@ public static class LogMaker
         }
     }
 
-    public static async void LogToTable(string subject, string message)
+    public static async void LogToTable(string subject, string message, string filePath = @"")
     {
         if (message == logSpam)
             return;
@@ -86,6 +86,11 @@ public static class LogMaker
         //Console.WriteLine(message);
 
         GetTitle();
+
+        if (filePath.Length > 1)
+        {
+            path = filePath;
+        }
 
         // This text is added only once to the file.
         if (!File.Exists(path))

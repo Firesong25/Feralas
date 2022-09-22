@@ -17,12 +17,13 @@ namespace Feralas
             TimeSpan pollingInterval = new(0, 0, 30);
             int z = 0;
 
-            List<WowRealm> activeRealms = await CreateActiveRealmList();
+            PostgresContext context = new PostgresContext();
+            List<WowRealm> activeRealms = await CreateActiveRealmList(context);
 
             // Test area
 
             //LogMaker.LogToTable($"Program.cs", $"Delete This");
-            //PostgresContext context = new PostgresContext();
+            //
 
 
             //DELETE UNTIL THIS
@@ -61,13 +62,17 @@ namespace Feralas
 
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");
+                List<WowRealm> allRealms = context.WowRealms.ToList();
+                foreach (WowRealm realm in allRealms)
+                {
+                    LogMaker.LogToTable($"{realm.Name}", $"{realm.LastScanTime}: {realm.ScanReport}", "scan_report.html");
+                }
+
             }
         }
-
-        public static async Task<List<WowRealm>> CreateActiveRealmList()
+        public static async Task<List<WowRealm>> CreateActiveRealmList(PostgresContext context)
         {
             await Task.Delay(1);  // stop compiler warnings on Linux
-            PostgresContext context = new();
             List<WowRealm> allRealms = context.WowRealms.ToList();
             List<WowRealm> activeRealms = new();
             foreach (WowRealm realm in allRealms)
@@ -81,5 +86,6 @@ namespace Feralas
 
             return activeRealms.OrderBy(l => l.WowNamespace).ThenBy(l => l.Name).ToList();
         }
+
     }
 }
