@@ -24,7 +24,9 @@ namespace Feralas
                 sw.Start();
                 string tag = $"{Realm.Name} US";
                 if (Realm.WowNamespace.Contains("-eu"))
+                {
                     tag = $"{Realm.Name} EU";
+                }
 
                 string results = string.Empty;
 

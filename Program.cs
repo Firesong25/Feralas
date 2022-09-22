@@ -61,11 +61,17 @@ namespace Feralas
                 }
 
                 z++;
-                LogMaker.LogToTable("Cleardragon", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");
+                LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
                 List<WowRealm> allRealms = context.WowRealms.ToList();
                 foreach (WowRealm realm in allRealms)
                 {
-                    LogMaker.LogToTable($"{realm.Name}", $"{realm.LastScanTime}: {realm.ScanReport}", "scan_report.html");
+                    string tag = $"{realm.Name} US";
+                    if (realm.WowNamespace.Contains("-eu"))
+                    {
+                        tag = $"{realm.Name} EU";
+                    }                        
+
+                    LogMaker.LogToTable($"{tag}", $"{realm.LastScanTime}: {realm.ScanReport}", "scan_report.html");
                 }
 
             }

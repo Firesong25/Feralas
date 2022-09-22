@@ -41,18 +41,6 @@ namespace Feralas
             List<WowAuction> auctionsToAdd = new();
             List<WowAuction> auctionsToUpdate = new();
             List<WowAuction> absentListings = new();
-            
-
-            /*
-             * Goals:
-             * 1. We only work with stored listings that are less than 48 hours old in the same realm group which are in storedAuctions
-             * 2. Listings that are over 7 days old are in the ancientListings list and deleted
-             * 3. Listings that have not been seen before are timestamped and stored in auctionsToAdd             
-             * 4. Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
-             * 5. Only stored listings that are in absentListings and marked VERY_LONG are assumed sold.
-             * 6. Stored listings that are still live are in auctionsToUpdate. Update their timestamps and timeleft tags.
-             * 7. Make a report of all changes.
-             */
 
             // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
@@ -62,8 +50,6 @@ namespace Feralas
             storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
 
             // Listings that are over 7 days old are in the ancientListings list and deleted
-
-
             ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
 
             if (ancientListings.Count > 0)
@@ -99,10 +85,7 @@ namespace Feralas
                 context.WowAuctions.RemoveRange(absentListings);
                 context.SaveChanges();
             }
-
-
-            // Commodity auctions do not need updates
-            if (!tag.ToLower().Contains("commodities"))
+            else 
             {
                 // Listings in both incoming and stored are to be updated
                 auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
@@ -152,18 +135,22 @@ namespace Feralas
 
             // Make a report of all changes.
             List<WowRealm> updatedRealms = context.WowRealms.Where(l => l.ConnectedRealmId.Equals(realm.ConnectedRealmId)).ToList();
+            int auctionCount = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId &&
+                l.Sold == false &&
+                l.FirstSeenTime > cutOffTime).
+                Count();
 
             foreach (WowRealm ur in updatedRealms)
             {
+                
                 string idTag = $"{ur.Name} US";
                 if (ur.WowNamespace.Contains("-eu"))
                     idTag = $"{ur.Name} EU";
-                int liveAuctionsCount = auctionsToAdd.Count + auctionsToUpdate.Count;
-                response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {idTag} has {liveAuctionsCount} live auctions";
+                response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {idTag} has {auctionCount} live auctions";
 
                 if (ur.Name.Contains("Commodities"))
                 {
-                    response = $"There are {incoming.Count} auctions for {tag}.";
+                    response = $"There are {auctionCount} auctions for {tag}.";
                 }
 
                 ur.ScanReport = response;
