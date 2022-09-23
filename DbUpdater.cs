@@ -72,23 +72,17 @@ namespace Feralas
             if (auctionsToAdd.Count > 0)
             {
                 context.WowAuctions.AddRange(auctionsToAdd);
-            }
-
-            
+            }            
 
             absentListings = storedAuctions.Except(incoming).ToList();
 
-            Parallel.ForEach(absentListings, auction => 
+            foreach (WowAuction auction in absentListings)
             {
                 if (auction.TimeLeft.Equals(TimeLeft.VERY_LONG) || auction.TimeLeft.Equals(TimeLeft.LONG))
                 {
                     soldListings.Add(auction);
                 }
-                else
-                {
-                    unsoldListings.Add(auction);
-                }
-            });
+            }
 
             if (soldListings.Count > 0)
             {
@@ -96,11 +90,12 @@ namespace Feralas
                 context.WowAuctions.UpdateRange(soldListings);
             }
 
+            unsoldListings = absentListings.Except(soldListings).ToList();
             if (unsoldListings.Count > 0)
             {
                 context.WowAuctions.RemoveRange(unsoldListings);
             }
-            
+
             auctionsToUpdate = storedAuctions.Intersect(incoming).Except(soldListings).ToList();
 
             Parallel.ForEach(auctionsToUpdate, auction => 
@@ -128,7 +123,7 @@ namespace Feralas
                 string idTag = $"{ur.Name} US";
                 if (ur.WowNamespace.Contains("-eu"))
                     idTag = $"{ur.Name} EU";
-                response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {idTag} has {auctionCount} live auctions";
+                response = $"{auctionsToAdd.Count} added. {auctionsToUpdate.Count} updated. {absentListings.Count} deleted. {ancientListings.Count} purged. {auctionCount} live auctions";
 
                 ur.ScanReport = response;
                 ur.LastScanTime = DateTime.UtcNow;
@@ -139,11 +134,6 @@ namespace Feralas
                 context.WowRealms.UpdateRange(updatedRealms);
                 sw.Restart();
                 context.SaveChanges();
-#if DEBUG
-
-                LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to save changes for {tag}.");
-                sw.Restart();
-#endif
             }
 
             return response;
