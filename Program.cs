@@ -22,8 +22,8 @@ namespace Feralas
 
             // Test area
 
-            //LogMaker.LogToTable($"Program.cs", $"Delete This");
-            //
+            //  LogMaker.LogToTable($"Program.cs", $"Delete This");
+
 
 
             //DELETE UNTIL THIS

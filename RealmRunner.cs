@@ -50,6 +50,7 @@ namespace Feralas
                 else
                 {
                     LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
+                    sw.Restart();                   
                 }
 
             }

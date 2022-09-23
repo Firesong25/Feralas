@@ -9,7 +9,6 @@ namespace Feralas
         {
             PostgresContext context = new PostgresContext();
 
-            // Make sure the stored connect realm id is correct
             int cid = await WowApi.GetConnectedRealmId(realm.WowNamespace, realm.RealmSlug);
 
             if (cid != 0 && cid != (int)realm.ConnectedRealmId)
@@ -42,50 +41,75 @@ namespace Feralas
             List<WowAuction> auctionsToUpdate = new();
             List<WowAuction> absentListings = new();
 
-            // the live dataset is less than 48 hours old, is not sold and is same realm
             DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
             DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7, 0, 0, 0);
 
-            // We only work with stored listings that are less than 48 hours old in the same realm group which are in storedAuctions
             storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
+#if DEBUG
 
-            // Listings that are over 7 days old are in the ancientListings list and deleted
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to get {storedAuctions.Count} stored auctions.");
+            sw.Restart();
+#endif
+
             ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
+#if DEBUG
+
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to get {ancientListings.Count} ancient listings.");
+            sw.Restart();
+#endif
 
             if (ancientListings.Count > 0)
             {
                 context.WowAuctions.RemoveRange(ancientListings);
                 context.SaveChanges();
             }
+#if DEBUG
 
-            // Listings that have not been seen before are timestamped and stored in auctionsToAdd
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to delete {ancientListings.Count}. ancient listings.");
+            sw.Restart();
+#endif
+
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
-            foreach (WowAuction auction in auctionsToAdd)
+
+            Parallel.ForEach(auctionsToAdd, auction => 
             {
                 auction.FirstSeenTime = DateTime.UtcNow - new TimeSpan(0, 5, 0);
                 auction.FirstSeenTime = DateTime.SpecifyKind(auction.FirstSeenTime, DateTimeKind.Utc);
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
-                if (auction.UnitPrice == 0 && auction.Buyout > 0)
-                {
-                    auction.UnitPrice = auction.Buyout;
-                }
-            }
+            });
+
+#if DEBUG
+
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to add {auctionsToAdd.Count} new listings in with parallel.foreach.");
+            sw.Restart();
+#endif
 
             if (auctionsToAdd.Count > 0)
             {
                 context.WowAuctions.AddRange(auctionsToAdd);
-                context.SaveChanges();
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch
+                {
+                    LogMaker.LogToTable($"{tag}", $"Exception adding {auctionsToAdd.Count} new listings.");
+                }
             }
 
-            // Listings in both incoming and stored are to be updated
+
+#if DEBUG
+
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to add {auctionsToAdd.Count} new listings.");
+            sw.Restart();
+#endif
+
             auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
 
-            // Auctions that are stored but not in incoming listings are either sold or expired. Put in absentListings and then process
             absentListings = storedAuctions.Except(incoming).ToList();
 
-            // Listings that are in absentListings and are not marked for SHORT or MEDIUM duration are sold. Put in soldListings and delete the others.
-            foreach (WowAuction auction in absentListings)
+            Parallel.ForEach(absentListings, auction => // 5 times faster than normal foreach
             {
                 if (auction.TimeLeft.Equals(TimeLeft.VERY_LONG) || auction.TimeLeft.Equals(TimeLeft.LONG))
                 {
@@ -95,33 +119,68 @@ namespace Feralas
                 {
                     unsoldListings.Add(auction);
                 }
-            }
+            });
+#if DEBUG
+
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to process {absentListings.Count} listings in parallel.");
+            sw.Restart();
+#endif
+
             if (soldListings.Count > 0)
             {
-                soldListings.ForEach(l => l.Sold = true);  // is this good code?
+                soldListings.ForEach(l => l.Sold = true); 
                 context.WowAuctions.UpdateRange(soldListings);
                 context.WowAuctions.RemoveRange(unsoldListings);
-                context.SaveChanges();
-            }
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch
+                {
+                    LogMaker.LogToTable($"{tag}", $"Exception handling {absentListings.Count} absent listings.");
+                }
 
-            // Sold auctions do not need any further updates
+            }
+#if DEBUG
+
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to process {absentListings.Count} absent listings.");
+            sw.Restart();
+#endif
+
             auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
 
-            // Stored listings that are still live are in auctionsToUpdate.  Update their timestamps and time left stamps.
-            foreach (WowAuction auction in auctionsToUpdate)
+            Parallel.ForEach(auctionsToUpdate, auction => 
             {
                 auction.LastSeenTime = DateTime.UtcNow;
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
                 auction.TimeLeft = incoming.FirstOrDefault(l => l.Equals(auction)).TimeLeft;
+            });
 
-            }
+#if DEBUG
+
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to update {auctionsToUpdate.Count} listings in parallel.");
+            sw.Restart();
+#endif
             if (auctionsToUpdate.Count > 0)
             {
                 context.WowAuctions.UpdateRange(auctionsToUpdate);
-                context.SaveChanges();
-            }
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch
+                {
+                    LogMaker.LogToTable($"{tag}", $"Exception saving updates to {auctionsToUpdate.Count} listings.");
+                }
 
-            // Make a report of all changes.
+
+            }
+#if DEBUG
+
+            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to update {auctionsToUpdate.Count} listings in the database.");
+            sw.Restart();
+#endif
+
             List<WowRealm> updatedRealms = context.WowRealms.Where(l => l.ConnectedRealmId.Equals(realm.ConnectedRealmId)).ToList();
             int auctionCount = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId &&
                 l.Sold == false &&
@@ -135,11 +194,6 @@ namespace Feralas
                 if (ur.WowNamespace.Contains("-eu"))
                     idTag = $"{ur.Name} EU";
                 response = $"{auctionsToAdd.Count} auctions added, {auctionsToUpdate.Count} updated, {absentListings.Count} deleted and {ancientListings.Count} over 7 days old purged. {idTag} has {auctionCount} live auctions";
-
-                if (ur.Name.Contains("Commodities"))
-                {
-                    response = $"There are {auctionCount} auctions for {tag}.";
-                }
 
                 ur.ScanReport = response;
                 ur.LastScanTime = DateTime.UtcNow;

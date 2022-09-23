@@ -44,13 +44,10 @@ namespace Feralas
                 url = $"https://eu.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-eu&access_token={AccessToken}";
             }
 
-
+            Stopwatch sw = Stopwatch.StartNew();
             try
             {
-                HttpClientHandler hch = new HttpClientHandler();
-                hch.Proxy = null;
-                hch.UseProxy = false;
-                HttpClient client = new HttpClient(hch);
+                HttpClient client = new HttpClient();
                 client.Timeout = TimeSpan.FromMinutes(1);
                 HttpResponseMessage response = await client.GetAsync(url);
                 HttpContent content = response.Content;
@@ -58,45 +55,65 @@ namespace Feralas
 
             }
             catch
-            {}
+            {
+#if DEBUG
 
-            try
-            {
-                HttpClientHandler hch = new HttpClientHandler();
-                hch.Proxy = null;
-                hch.UseProxy = false;
-                HttpClient client = new HttpClient(hch);
-                client.Timeout = TimeSpan.FromMinutes(1);
-                HttpResponseMessage response = await client.GetAsync(url);
-                HttpContent content = response.Content;
-                auctionsJson = await content.ReadAsStringAsync();
+                LogMaker.LogToTable($"WowApi", $"{tag}: {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to fail on try 1.");
+                sw.Restart();
+#endif
             }
-            catch
-            {}
 
-            try
+            if (auctionsJson.Equals(string.Empty))
             {
-                HttpClientHandler hch = new HttpClientHandler();
-                hch.Proxy = null;
-                hch.UseProxy = false;
-                HttpClient client = new HttpClient(hch);
-                client.Timeout = TimeSpan.FromMinutes(1);
-                HttpResponseMessage response = await client.GetAsync(url);
-                HttpContent content = response.Content;
-                auctionsJson = await content.ReadAsStringAsync();
-            }
-            catch (Exception ex)
-            {
-                LogMaker.LogToTable($"{tag}", "WowApi problem after 3 attempts.");
-                LogMaker.LogToTable($"{tag}", ex.Message);
-                if (!ex.InnerException.Equals(null))
+                await Task.Delay(new TimeSpan(0, 0, 30));
+                try
                 {
-                    LogMaker.LogToTable($"{tag}", "________________InnerException___________________");
-                    LogMaker.LogToTable($"{tag}", $"{ex.InnerException}");
+                    HttpClientHandler hch = new HttpClientHandler();
+                    hch.Proxy = null;
+                    hch.UseProxy = false;
+                    HttpClient client = new HttpClient(hch);
+                    client.Timeout = TimeSpan.FromMinutes(1);
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    HttpContent content = response.Content;
+                    auctionsJson = await content.ReadAsStringAsync();
+                }
+                catch
+                {
+#if DEBUG
+
+                    LogMaker.LogToTable($"WowApi", $"{tag}: {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to fail on try 2.");
+                    sw.Restart();
+#endif
                 }
             }
 
-            if (auctionsJson == string.Empty)
+            if (auctionsJson.Equals(string.Empty))
+            {
+                await Task.Delay(new TimeSpan(0, 0, 30));
+                try
+                {
+                    HttpClientHandler hch = new HttpClientHandler();
+                    hch.Proxy = null;
+                    hch.UseProxy = false;
+                    HttpClient client = new HttpClient(hch);
+                    client.Timeout = TimeSpan.FromMinutes(1);
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    HttpContent content = response.Content;
+                    auctionsJson = await content.ReadAsStringAsync();
+                }
+                catch (Exception ex)
+                {
+                    LogMaker.LogToTable($"WowApi", $"{tag}: {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to fail on try 3.  Giving up.");
+                    LogMaker.LogToTable($"{tag}", ex.Message);
+                    if (!ex.InnerException.Equals(null))
+                    {
+                        LogMaker.LogToTable($"{tag}", "-------InnerException-------");
+                        LogMaker.LogToTable($"{tag}", $"{ex.InnerException}");
+                    }
+                }
+            }
+
+            if (auctionsJson.Equals(string.Empty))
             {
 
                 LogMaker.LogToTable($"WowApi", $"Blizzard sent an empty string for {tag}");
