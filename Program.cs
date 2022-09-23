@@ -49,31 +49,25 @@ namespace Feralas
                 foreach (WowRealm realm in activeRealms)
                 {
                     RealmRunner realmRunner = new(realm);
-                    backgroundTask = realmRunner.Run();
-                    if (realm.Name.ToLower().Contains("commodities"))
-                    {
-                        await Task.Delay(pollingInterval * 4);
-                    }
-                    else
-                    {
-                        await Task.Delay(pollingInterval);
-                    }
+                    await realmRunner.Run();
                 }
 
                 z++;
                 LogMaker.LogToTable("Cleardragon", $"Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
                 List<WowRealm> allRealms = context.WowRealms.ToList();
+
+                if (File.Exists("scan_report.html"))
+                    File.Delete("scan_report.html");
+
                 foreach (WowRealm realm in allRealms)
                 {
                     string tag = $"{realm.Name} US";
                     if (realm.WowNamespace.Contains("-eu"))
                     {
                         tag = $"{realm.Name} EU";
-                    }                        
-
+                    }
                     LogMaker.LogToTable($"{tag}", $"{realm.LastScanTime}: {realm.ScanReport}", "scan_report.html");
                 }
-
             }
         }
         public static async Task<List<WowRealm>> CreateActiveRealmList(PostgresContext context)

@@ -91,6 +91,10 @@ public static class LogMaker
         {
             path = filePath;
         }
+        else
+        {
+            path = @"log.html";
+        }
 
         // This text is added only once to the file.
         if (!File.Exists(path))

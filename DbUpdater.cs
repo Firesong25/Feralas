@@ -22,7 +22,14 @@ namespace Feralas
 
             Listings auctions = new();
             await auctions.CreateLists(realm, json, tag);
-            string response = await DbAuctionsUpdaterAsync(context, realm, auctions, tag);
+
+            string response = string.Empty;
+            if (auctions.LiveAuctions.Count > 0)
+            {
+                response = await DbAuctionsUpdaterAsync(context, realm, auctions, tag);
+            }
+
+            
             return response;
         }
 
@@ -45,29 +52,12 @@ namespace Feralas
             DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7, 0, 0, 0);
 
             storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
-#if DEBUG
-
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to get {storedAuctions.Count} stored auctions.");
-            sw.Restart();
-#endif
 
             ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
-#if DEBUG
-
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to get {ancientListings.Count} ancient listings.");
-            sw.Restart();
-#endif
-
             if (ancientListings.Count > 0)
             {
                 context.WowAuctions.RemoveRange(ancientListings);
-                context.SaveChanges();
             }
-#if DEBUG
-
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to delete {ancientListings.Count}. ancient listings.");
-            sw.Restart();
-#endif
 
             auctionsToAdd = incoming.Except(storedAuctions).ToList();
 
@@ -79,37 +69,16 @@ namespace Feralas
                 auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             });
 
-#if DEBUG
-
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to add {auctionsToAdd.Count} new listings in with parallel.foreach.");
-            sw.Restart();
-#endif
-
             if (auctionsToAdd.Count > 0)
             {
                 context.WowAuctions.AddRange(auctionsToAdd);
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch
-                {
-                    LogMaker.LogToTable($"{tag}", $"Exception adding {auctionsToAdd.Count} new listings.");
-                }
             }
 
-
-#if DEBUG
-
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to add {auctionsToAdd.Count} new listings.");
-            sw.Restart();
-#endif
-
-            auctionsToUpdate = storedAuctions.Intersect(incoming).ToList();
+            
 
             absentListings = storedAuctions.Except(incoming).ToList();
 
-            Parallel.ForEach(absentListings, auction => // 5 times faster than normal foreach
+            Parallel.ForEach(absentListings, auction => 
             {
                 if (auction.TimeLeft.Equals(TimeLeft.VERY_LONG) || auction.TimeLeft.Equals(TimeLeft.LONG))
                 {
@@ -120,34 +89,19 @@ namespace Feralas
                     unsoldListings.Add(auction);
                 }
             });
-#if DEBUG
-
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to process {absentListings.Count} listings in parallel.");
-            sw.Restart();
-#endif
 
             if (soldListings.Count > 0)
             {
-                soldListings.ForEach(l => l.Sold = true); 
+                soldListings.ForEach(l => l.Sold = true);
                 context.WowAuctions.UpdateRange(soldListings);
-                context.WowAuctions.RemoveRange(unsoldListings);
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch
-                {
-                    LogMaker.LogToTable($"{tag}", $"Exception handling {absentListings.Count} absent listings.");
-                }
-
             }
-#if DEBUG
 
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to process {absentListings.Count} absent listings.");
-            sw.Restart();
-#endif
-
-            auctionsToUpdate = auctionsToUpdate.Except(soldListings).ToList();
+            if (unsoldListings.Count > 0)
+            {
+                context.WowAuctions.RemoveRange(unsoldListings);
+            }
+            
+            auctionsToUpdate = storedAuctions.Intersect(incoming).Except(soldListings).ToList();
 
             Parallel.ForEach(auctionsToUpdate, auction => 
             {
@@ -156,31 +110,12 @@ namespace Feralas
                 auction.TimeLeft = incoming.FirstOrDefault(l => l.Equals(auction)).TimeLeft;
             });
 
-#if DEBUG
-
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to update {auctionsToUpdate.Count} listings in parallel.");
-            sw.Restart();
-#endif
             if (auctionsToUpdate.Count > 0)
             {
                 context.WowAuctions.UpdateRange(auctionsToUpdate);
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch
-                {
-                    LogMaker.LogToTable($"{tag}", $"Exception saving updates to {auctionsToUpdate.Count} listings.");
-                }
-
-
             }
-#if DEBUG
 
-            LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to update {auctionsToUpdate.Count} listings in the database.");
-            sw.Restart();
-#endif
-
+            // all work done now store the results
             List<WowRealm> updatedRealms = context.WowRealms.Where(l => l.ConnectedRealmId.Equals(realm.ConnectedRealmId)).ToList();
             int auctionCount = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId &&
                 l.Sold == false &&
@@ -202,7 +137,13 @@ namespace Feralas
             if (updatedRealms.Count > 0)
             {
                 context.WowRealms.UpdateRange(updatedRealms);
+                sw.Restart();
                 context.SaveChanges();
+#if DEBUG
+
+                LogMaker.LogToTable($"{tag}", $"{RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)} to save changes for {tag}.");
+                sw.Restart();
+#endif
             }
 
             return response;

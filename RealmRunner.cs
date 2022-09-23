@@ -19,52 +19,33 @@ namespace Feralas
         {
             System.Diagnostics.Stopwatch sw = new();
 
-            try
+            sw.Start();
+            string tag = $"{Realm.Name} US";
+            if (Realm.WowNamespace.Contains("-eu"))
             {
-                sw.Start();
-                string tag = $"{Realm.Name} US";
-                if (Realm.WowNamespace.Contains("-eu"))
-                {
-                    tag = $"{Realm.Name} EU";
-                }
-
-                string results = string.Empty;
-
-                //LogMaker.LogToTable($"RealmRunner",$"{tag} Auction house scan.");
-                string auctionsJson = await WowApi.GetRealmAuctions(Realm, tag);
-                if (auctionsJson != string.Empty)
-                {
-                    //LogMaker.LogToTable($"RealmRunner", $"The realm data for {tag} namespace is downloaded.");
-                    DbUpdater db = new();
-                    results = await db.DoUpdatesAsync(Realm, auctionsJson, tag);
-                    LastUpdate = DateTime.UtcNow;
-                }
-                else
-                    LogMaker.LogToTable($"RealmRunner", $"Failed to get realm data for {tag} namespace.");
-
-                if (results.Equals(string.Empty))
-                {
-                    LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for failed run.");
-                    
-                }
-                else
-                {
-                    LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
-                    sw.Restart();                   
-                }
-
+                tag = $"{Realm.Name} EU";
             }
-            catch (Exception ex)
+
+            string results = string.Empty;
+
+            string auctionsJson = await WowApi.GetRealmAuctions(Realm, tag);
+            if (auctionsJson != string.Empty)
             {
-                LogMaker.LogToTable($"RealmRunner", $"________________{Realm.Name} Run Failed___________________");
-                LogMaker.LogToTable($"RealmRunner", ex.Message);
-                LogMaker.LogToTable($"RealmRunner", "________________StackTrace___________________");
-                LogMaker.LogToTable($"RealmRunner", ex.StackTrace);                
-                if (ex.InnerException != null)
-                {
-                    LogMaker.LogToTable($"RealmRunner", "________________InnerException___________________");
-                    LogMaker.LogToTable($"RealmRunner", $"{ex.InnerException}");
-                }                    
+                DbUpdater db = new();
+                results = await db.DoUpdatesAsync(Realm, auctionsJson, tag);
+                LastUpdate = DateTime.UtcNow;
+            }
+            else
+                LogMaker.LogToTable($"RealmRunner", $"Failed to get realm data for {tag} namespace.");
+
+            if (results.Equals(string.Empty))
+            {
+                LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for failed run.");
+            }
+            else
+            {
+                LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
+                sw.Restart();
             }
         }
 
