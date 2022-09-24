@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 
 namespace Feralas
 {
@@ -29,7 +30,7 @@ namespace Feralas
             string results = string.Empty;
 
             string auctionsJson = await WowApi.GetRealmAuctions(Realm, tag);
-            if (auctionsJson != string.Empty)
+            if (auctionsJson != string.Empty && IsJsonValid(auctionsJson))
             {
                 DbUpdater db = new();
                 results = await db.DoUpdatesAsync(Realm, auctionsJson, tag);
@@ -47,6 +48,13 @@ namespace Feralas
                 LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
                 sw.Restart();
             }
+        }
+
+        public static bool IsJsonValid(string txt)
+        {
+            try { return JsonDocument.Parse(txt) != null; } catch { }
+
+            return false;
         }
 
 

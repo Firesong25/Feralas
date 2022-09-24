@@ -17,7 +17,12 @@ namespace Feralas
                 WowRealm brokenRealm = context.WowRealms.FirstOrDefault(l => l.Id == realm.Id);
                 brokenRealm.ConnectedRealmId = cid;
                 context.Update(brokenRealm);
-                context.SaveChanges();
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch { LogMaker.LogToTable($"IMPORTANT", $"<b>{realm.Name} connected realm id update FAILED.</b>"); }
+                
             }
 
             Listings auctions = new();
@@ -133,7 +138,15 @@ namespace Feralas
             {
                 context.WowRealms.UpdateRange(updatedRealms);
                 sw.Restart();
-                context.SaveChanges();
+                try
+                {
+                    context.SaveChanges();
+                }
+                catch
+                {
+                    response = $"<b>Error when saving data for {tag}</b>";
+                }
+                
             }
 
             return response;

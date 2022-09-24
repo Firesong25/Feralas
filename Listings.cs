@@ -37,7 +37,6 @@ namespace Feralas
                 }
             }
 
-
             if (json.Length > 0)
             {
                 Root root = JsonSerializer.Deserialize<Root>(json);
