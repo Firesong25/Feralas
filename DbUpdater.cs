@@ -25,7 +25,7 @@ public class DbUpdater
         }
 
         Listings auctions = new();
-        await auctions.CreateLists(realm, json, tag);
+        await auctions.CreateLists(context, realm, json, tag);
 
         string response = string.Empty;
         if (auctions.LiveAuctions.Count > 0)

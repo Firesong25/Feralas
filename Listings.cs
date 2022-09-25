@@ -10,10 +10,17 @@ public class Listings
     WowAuction extraAuction = new();
     WowAuction trialAuction = new();
 
-    public async Task CreateLists(WowRealm realm, string json, string tag)
+    static List<int> craftedItemIds = new();
+
+    public async Task CreateLists(PostgresContext context, WowRealm realm, string json, string tag)
     {
         LiveAuctions = new();
         ExtraItems = new();
+
+        if (craftedItemIds.Count < 1)
+        {
+            craftedItemIds = context.CraftedItems.Select(l => l.Id).ToList();
+        }
 
         if (json.Length > 0)
         {
@@ -39,6 +46,11 @@ public class Listings
         await Task.Delay(1); // happy now?
         foreach (Auction auction in jsonAuctions)
         {
+            // I can't see a downside to this filter.
+            if (FilterListing(realm.ConnectedRealmId, auction.item.id))
+            {
+                continue;
+            }
             extraAuction.AuctionId = auction.id;
             extraAuction.ConnectedRealmId = realm.ConnectedRealmId;
             extraAuction.LastSeenTime = DateTime.UtcNow;
@@ -74,6 +86,16 @@ public class Listings
 
             extraAuction = new();
         }
+    }
+
+    bool FilterListing(int connectedRealmId, int itemId)
+    {
+        if (!connectedRealmId.Equals(12345) && !connectedRealmId.Equals(54321) && !craftedItemIds.Contains(itemId))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public async Task GetExtraItemsAsync()

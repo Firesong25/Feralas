@@ -13,14 +13,19 @@ public static class WowApi
 
         Token tok = await GetElibilityToken(tag);
 
-        if (tok.AccessToken == null)
+        if (tok.Equals(null) )
         {
-            //LogMaker.LogToTable($"WowApi", $"Access token refused.  Use the old one...");
-            AccessToken = "UScrm608hoZJq8hso4zGW8caqUeXGhSoJE";
+            tok = await GetElibilityToken(tag);
         }
-        else
+
+        if (tok.Equals(null))
         {
-            AccessToken = tok.AccessToken;
+            tok = await GetElibilityToken(tag);
+        }
+
+        if (tok.Equals(null))
+        {
+            return string.Empty;
         }
 
         List<Auction> auctions = new();
@@ -238,7 +243,9 @@ public static class WowApi
             LogMaker.LogToTable($"WowApi", $"Loading of credentials file has failed!");
         }
 
-        if (AccessToken == string.Empty || TokenTimer.ElapsedMilliseconds / 1000 > 3600 || !TokenTimer.IsRunning)
+        TimeSpan tokTimer = new(12, 0, 0);
+
+        if (AccessToken == string.Empty || TokenTimer.Elapsed > tokTimer|| !TokenTimer.IsRunning)
         {
             TokenTimer.Start();
             string baseAddress = @"https://us.battle.net/oauth/token";
