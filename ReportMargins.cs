@@ -6,7 +6,7 @@ namespace Feralas;
 internal class ReportMargins
 {
 
-    public async Task PopulateEuCommodityPrices()
+    public async Task PopulateEuCommodityPrices(PostgresContext context)
     {
         await Task.Delay(1);
         Dictionary<int, long> tmp = new();
@@ -21,9 +21,10 @@ internal class ReportMargins
         }
 
         CachedData.EuCommodityPrices = tmp;
+        await GetMarginReportForCommodities(context, "us");
     }
 
-    public async Task PopulateUsCommodityPrices()
+    public async Task PopulateUsCommodityPrices(PostgresContext context)
     {
         await Task.Delay(1);
         Dictionary<int, long> tmp = new();
@@ -38,13 +39,16 @@ internal class ReportMargins
         }
 
         CachedData.UsCommodityPrices = tmp;
+
+        await GetMarginReportForCommodities(context, "us");
+         
     }
 
-    async Task GetMarginReportForCommodities(PostgresContext context, string zone)
+    public async Task GetMarginReportForCommodities(PostgresContext context, string zone)
     {
         List<MarginReport> reports = new();
         Stopwatch sw = Stopwatch.StartNew();
-        foreach (CraftedItem item in CachedData.RealmItems.Where(l => l.SkillTierId > 2700))
+        foreach (CraftedItem item in CachedData.RealmItems)
         {
             MarginReport mr = new();
             if (zone.Equals("eu"))
@@ -75,7 +79,7 @@ internal class ReportMargins
 
         List<MarginReport> reports = new();
         Stopwatch sw = Stopwatch.StartNew();
-        foreach (CraftedItem item in CachedData.RealmItems.Where(l => l.SkillTierId > 2700))
+        foreach (CraftedItem item in CachedData.RealmItems)
         {
             MarginReport mr = await GetMargin(item, auctions, zone);
             reports.Add(mr);

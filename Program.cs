@@ -19,8 +19,8 @@ internal class Program
         Stopwatch sw = Stopwatch.StartNew();
 
         LogMaker.LogToTable($"Feralas", $"Initisalising.");
-        await reporter.PopulateEuCommodityPrices();
-        await reporter.PopulateUsCommodityPrices();
+        await reporter.PopulateEuCommodityPrices(context);
+        await reporter.PopulateUsCommodityPrices(context);
 
         TimeSpan pollingInterval = new(0, 0, 30);
         int z = 0;

@@ -142,13 +142,14 @@ public class DbUpdater
         if (realm.ConnectedRealmId.Equals(12345))
         {
             CachedData.UsCommodities = auctionsToAdd;
-            Task background = reporter.PopulateUsCommodityPrices();
+            Task background = reporter.PopulateUsCommodityPrices(context);
+            
         }
 
         if (realm.ConnectedRealmId.Equals(54321))
         {
             CachedData.EuCommodities = auctionsToAdd;
-            Task background = reporter.PopulateEuCommodityPrices();
+            Task background = reporter.PopulateEuCommodityPrices(context);
         }
 
         Task backgroundReporter = reporter.GetMarginReportsForRealm(context, auctionsToAdd);
