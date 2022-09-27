@@ -48,7 +48,7 @@ internal class ReportMargins
     {
         List<MarginReport> reports = new();
         Stopwatch sw = Stopwatch.StartNew();
-        foreach (CraftedItem item in CachedData.RealmItems)
+        foreach (CraftedItem item in CachedData.CommodityItems)
         {
             MarginReport mr = new();
             if (zone.Equals("eu"))
