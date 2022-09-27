@@ -18,7 +18,7 @@ internal class Program
         ReportMargins reporter = new();
         Stopwatch sw = Stopwatch.StartNew();
 
-        LogMaker.LogToTable($"Feralas", $"Initisalising.");
+        LogMaker.LogToTable($"Feralas", $"Initialising.");
         await reporter.PopulateEuCommodityPrices(context);
         await reporter.PopulateUsCommodityPrices(context);
 

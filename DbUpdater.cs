@@ -152,7 +152,8 @@ public class DbUpdater
             Task background = reporter.PopulateEuCommodityPrices(context);
         }
 
-        Task backgroundReporter = reporter.GetMarginReportsForRealm(context, auctionsToAdd);
+        //Task backgroundReporter = reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
+        await reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
 
         if (updatedRealms.Count > 0)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 
 namespace Feralas;
@@ -59,15 +60,18 @@ internal class ReportMargins
             {
                 mr = await GetMargin(item, CachedData.UsCommodities, zone);
             }
-            
-            reports.Add(mr);
+
+            if (mr.Volume48Hours > 0)
+            {
+                reports.Add(mr);
+            }
         }
         context.MarginReports.AddRange(reports);
 
         LogMaker.LogToTable($"ReportMargins.cs", $"{reports.Count} {zone} commodity margin reports took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
         await context.SaveChangesAsync();
     }
-    public async Task GetMarginReportsForRealm(PostgresContext context, List<WowAuction> auctions)
+    public async Task GetMarginReportsForRealm(PostgresContext context, List<WowAuction> auctions, string tag)
     {
         WowRealm realm = CachedData.Realms.FirstOrDefault(l => l.ConnectedRealmId.Equals(auctions.FirstOrDefault().ConnectedRealmId));
 
@@ -82,11 +86,16 @@ internal class ReportMargins
         foreach (CraftedItem item in CachedData.RealmItems)
         {
             MarginReport mr = await GetMargin(item, auctions, zone);
-            reports.Add(mr);
+            if (mr.Volume48Hours > 0)
+            {
+                reports.Add(mr);
+            }            
         }
+        string json = JsonConvert.SerializeObject(reports, Formatting.Indented);
+        File.WriteAllText("margin_report.json", json);
         context.MarginReports.AddRange(reports);
 
-        LogMaker.LogToTable($"ReportMargins.cs", $"{reports.Count} margin reports took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        LogMaker.LogToTable($"{tag}", $"{reports.Count} margin reports for {tag} took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
         await context.SaveChangesAsync();
     }
     public async Task<MarginReport> GetMargin(CraftedItem item, List<WowAuction> auctions, string zone)
@@ -95,6 +104,11 @@ internal class ReportMargins
         foreach (WowAuction auction in auctions.Where(l => l.ItemId == item.Id))
         {
             totalListings += auction.Quantity;
+        }
+
+        if (totalListings.Equals(0))
+        {
+            return new MarginReport();
         }
 
         long medianPrice = await GetRealPrice(item.Id, auctions) / item.CraftedQuantity;
