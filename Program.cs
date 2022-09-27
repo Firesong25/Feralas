@@ -13,11 +13,20 @@ internal class Program
             File.Delete("log.html");
 
         await Configurations.Init();
+        PostgresContext context = new PostgresContext();
+        await CachedData.Init(context);
+        ReportMargins reporter = new();
+        Stopwatch sw = Stopwatch.StartNew();
+
+        LogMaker.LogToTable($"Feralas", $"Initisalising.");
+        await reporter.PopulateEuCommodityPrices();
+        await reporter.PopulateUsCommodityPrices();
+
         TimeSpan pollingInterval = new(0, 0, 30);
         int z = 0;
 
-        PostgresContext context = new PostgresContext();
-        List<WowRealm> activeRealms = await CreateActiveRealmList(context);
+        
+        List<WowRealm> activeRealms = await CreateActiveRealmList();
 
         // Test area
 
@@ -27,8 +36,10 @@ internal class Program
 
         //DELETE UNTIL THIS
 
+        LogMaker.LogToTable($"Feralas", $"Initialisation took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+
         LogMaker.LogToTable("Feralas", $"<em>Auctions scans for {activeRealms.Count} realms starting.</em>");
-        Stopwatch sw = new();
+        
 
         while (true)
         {
@@ -56,12 +67,11 @@ internal class Program
 
         }
     }
-    public static async Task<List<WowRealm>> CreateActiveRealmList(PostgresContext context)
+    public static async Task<List<WowRealm>> CreateActiveRealmList()
     {
         await Task.Delay(1);  // stop compiler warnings on Linux
-        List<WowRealm> allRealms = context.WowRealms.ToList();
         List<WowRealm> activeRealms = new();
-        foreach (WowRealm realm in allRealms)
+        foreach (WowRealm realm in CachedData.Realms)
         {
             WowRealm trial = activeRealms.FirstOrDefault(l => l.ConnectedRealmId == realm.ConnectedRealmId);
             if (trial == null)

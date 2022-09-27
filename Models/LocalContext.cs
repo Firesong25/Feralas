@@ -1,5 +1,4 @@
-﻿using Feralas;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 namespace Feralas;
 
 

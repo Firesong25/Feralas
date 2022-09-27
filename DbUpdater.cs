@@ -6,7 +6,7 @@ public class DbUpdater
 {
     public async Task<string> DoUpdatesAsync(WowRealm realm, string json, string tag)
     {
-        PostgresContext context = new PostgresContext();
+        PostgresContext context = new();
 
         int cid = await WowApi.GetConnectedRealmId(realm.WowNamespace, realm.RealmSlug);
 
@@ -27,18 +27,21 @@ public class DbUpdater
         Listings auctions = new();
         await auctions.CreateLists(context, realm, json, tag);
 
+        context.Dispose();
+
         string response = string.Empty;
         if (auctions.LiveAuctions.Count > 0)
         {
-            response = await DbAuctionsUpdaterAsync(context, realm, auctions, tag);
+            response = await DbAuctionsUpdaterAsync(realm, auctions, tag);
         }
 
         
         return response;
     }
 
-    public async Task<string> DbAuctionsUpdaterAsync(PostgresContext context, WowRealm realm, Listings auctions, string tag)
+    public async Task<string> DbAuctionsUpdaterAsync(WowRealm realm, Listings auctions, string tag)
     {
+        PostgresContext context = new();
         string response = string.Empty;
         Stopwatch sw = Stopwatch.StartNew();
 
@@ -132,6 +135,23 @@ public class DbUpdater
             ur.ScanReport = response;
             ur.LastScanTime = DateTime.UtcNow;
         }
+
+        ReportMargins reporter = new();
+        auctionsToAdd.AddRange(auctionsToUpdate);
+
+        if (realm.ConnectedRealmId.Equals(12345))
+        {
+            CachedData.UsCommodities = auctionsToAdd;
+            Task background = reporter.PopulateUsCommodityPrices();
+        }
+
+        if (realm.ConnectedRealmId.Equals(54321))
+        {
+            CachedData.EuCommodities = auctionsToAdd;
+            Task background = reporter.PopulateEuCommodityPrices();
+        }
+
+        Task backgroundReporter = reporter.GetMarginReportsForRealm(context, auctionsToAdd);
 
         if (updatedRealms.Count > 0)
         {

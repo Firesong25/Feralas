@@ -28,6 +28,8 @@ public static class WowApi
             return string.Empty;
         }
 
+        AccessToken = tok.AccessToken;
+
         List<Auction> auctions = new();
 
 

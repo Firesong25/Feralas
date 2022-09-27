@@ -10,6 +10,8 @@ namespace Feralas
         [Key]
         public int Id { get; set; }
 
+        [NotMapped]
+        public string ListOfReagents { get; set; }
         [Column("name")]
         public string Name { get; set; }
 
@@ -19,15 +21,17 @@ namespace Feralas
         public int SkillTierId { get; set; }
         [Column("category")]
         public string Category { get; set; }
-        [Column("reagents")]
-        public string Reagents { get; set; }
-        [Column("minimum_quantity")]
-        public int MinumumQuantity { get; set; }
-        [Column("maximum_quantity")]
-        public int MaximumQuantity { get; set; }
+
+        [Column("is_commodity")]
+        public bool IsCommodity { get; set; }
+
+        public List<Reagent> Reagents { get; set; }
 
         [Column("recipe_id")]
         public int RecipeId { get; set; }
+
+        [Column("crafted_quantity")]
+        public int CraftedQuantity { get; set; }
 
         public bool Equals(CraftedItem other)
         {

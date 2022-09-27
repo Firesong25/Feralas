@@ -4,14 +4,13 @@ namespace Feralas;
 
 internal class RealmRunner
 {
-    public RealmRunner(WowRealm realm)
+    public RealmRunner(WowRealm wowRealm)
     {
-        Realm = realm;
+        realm = wowRealm;
         LastUpdate = DateTime.UtcNow;
     }
 
-    public WowRealm Realm;
-
+    WowRealm realm;
 
     public DateTime LastUpdate { get; private set; }
 
@@ -20,19 +19,19 @@ internal class RealmRunner
         System.Diagnostics.Stopwatch sw = new();
 
         sw.Start();
-        string tag = $"{Realm.Name} US";
-        if (Realm.WowNamespace.Contains("-eu"))
+        string tag = $"{realm.Name} US";
+        if (realm.WowNamespace.Contains("-eu"))
         {
-            tag = $"{Realm.Name} EU";
+            tag = $"{realm.Name} EU";
         }
 
         string results = string.Empty;
 
-        string auctionsJson = await WowApi.GetRealmAuctions(Realm, tag);
+        string auctionsJson = await WowApi.GetRealmAuctions(realm, tag);
         if (auctionsJson != string.Empty && IsJsonValid(auctionsJson))
         {
             DbUpdater db = new();
-            results = await db.DoUpdatesAsync(Realm, auctionsJson, tag);
+            results = await db.DoUpdatesAsync(realm, auctionsJson, tag);
             LastUpdate = DateTime.UtcNow;
         }
         else
