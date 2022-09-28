@@ -145,15 +145,16 @@ public class DbUpdater
             Task background = reporter.PopulateUsCommodityPrices(context);
             
         }
-
-        if (realm.ConnectedRealmId.Equals(54321))
+        else if (realm.ConnectedRealmId.Equals(54321))
         {
             CachedData.EuCommodities = auctionsToAdd;
             Task background = reporter.PopulateEuCommodityPrices(context);
         }
-
-        //Task backgroundReporter = reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
-        await reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
+        else
+        {
+            Task backgroundReporter = reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
+            //await reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
+        }
 
         if (updatedRealms.Count > 0)
         {

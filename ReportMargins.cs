@@ -73,6 +73,10 @@ internal class ReportMargins
     }
     public async Task GetMarginReportsForRealm(PostgresContext context, List<WowAuction> auctions, string tag)
     {
+        if (auctions.FirstOrDefault().ConnectedRealmId.Equals(12345) || auctions.FirstOrDefault().ConnectedRealmId.Equals(54321))
+        {
+            return;
+        }
         WowRealm realm = CachedData.Realms.FirstOrDefault(l => l.ConnectedRealmId.Equals(auctions.FirstOrDefault().ConnectedRealmId));
 
         string zone = "eu";
