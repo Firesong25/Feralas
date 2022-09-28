@@ -55,17 +55,15 @@ internal class Program
                 }
             }
 
-            Task runBackground;
-
             foreach (WowRealm realm in activeRealms)
             {
                 RealmRunner realmRunner = new(realm);
-                runBackground = realmRunner.Run();
+                _ = realmRunner.Run();
                 await Task.Delay(pollingInterval);
             }
 
-            runBackground = reporter.PopulateEuCommodityPrices(context);
-            runBackground = reporter.PopulateUsCommodityPrices(context);
+            _ = reporter.PopulateEuCommodityPrices(context);
+            _ = reporter.PopulateUsCommodityPrices(context);
 
             z++;
             LogMaker.LogToTable("Feralas", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");

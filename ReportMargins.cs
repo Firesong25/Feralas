@@ -72,7 +72,7 @@ internal class ReportMargins
         context.MarginReports.RemoveRange(context.MarginReports.Where(l => l.ConnectedRealmId.Equals(connectedRealmId)));
         context.MarginReports.AddRange(reports);
 
-        LogMaker.LogToTable($"{tag}", $"{reports.Count} {tag} commodity margin reports took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        //LogMaker.LogToTable($"{tag}", $"{reports.Count} {tag} commodity margin reports took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
         await context.SaveChangesAsync();
     }
     public async Task GetMarginReportsForScan(PostgresContext context, List<WowAuction> auctions, string tag)
@@ -100,12 +100,11 @@ internal class ReportMargins
                 reports.Add(mr);
             }            
         }
-        string json = JsonConvert.SerializeObject(reports, Formatting.Indented);
-        File.WriteAllText("margin_report.json", json);
+
         context.MarginReports.RemoveRange(context.MarginReports.Where(l => l.ConnectedRealmId.Equals(auctions.FirstOrDefault().ConnectedRealmId)));
         context.MarginReports.AddRange(reports);
 
-        LogMaker.LogToTable($"{tag}", $"{reports.Count} margin reports for {tag} took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        //LogMaker.LogToTable($"{tag}", $"{reports.Count} margin reports for {tag} took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
         await context.SaveChangesAsync();
     }
     public async Task<MarginReport> GetMargin(CraftedItem item, List<WowAuction> auctions, string tag)
