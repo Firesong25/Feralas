@@ -43,8 +43,9 @@ internal class RealmRunner
         }
         else
         {
-            //LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
-            sw.Restart();
+#if DEBUG
+            LogMaker.LogToTable($"{tag}", $"{GetReadableTimeByMs(sw.ElapsedMilliseconds)} for {results}.");
+#endif
         }
     }
 
