@@ -49,6 +49,7 @@ public static class CachedData
                 {183954, 90000},
             };
 
+    // iksit better to cache all prices once per run or just those I need 177 times per run
     public static Dictionary<int, long> EuCommodityPrices = new();
 
     public static Dictionary<int, long> UsCommodityPrices = new();

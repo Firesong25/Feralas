@@ -22,7 +22,7 @@ internal class ReportMargins
         }
 
         CachedData.EuCommodityPrices = tmp;
-        await GetMarginReportForCommodities(context, "eu");
+        await GetMarginReportForCommodities(context, "EU");
     }
 
     public async Task PopulateUsCommodityPrices(PostgresContext context)
@@ -41,7 +41,7 @@ internal class ReportMargins
 
         CachedData.UsCommodityPrices = tmp;
 
-        await GetMarginReportForCommodities(context, "us");
+        await GetMarginReportForCommodities(context, "US");
          
     }
 

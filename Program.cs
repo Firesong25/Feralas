@@ -22,7 +22,7 @@ internal class Program
         await reporter.PopulateEuCommodityPrices(context);
         await reporter.PopulateUsCommodityPrices(context);
 
-        TimeSpan pollingInterval = new(0, 0, 30);
+        TimeSpan pollingInterval = new(0, 0, 15);
         int z = 0;
 
         
@@ -59,8 +59,12 @@ internal class Program
             foreach (WowRealm realm in activeRealms)
             {
                 RealmRunner realmRunner = new(realm);
-                await realmRunner.Run();
+                realmRunner.Run();
+                await Task.Delay(pollingInterval);
             }
+
+            reporter.PopulateEuCommodityPrices(context);
+            reporter.PopulateUsCommodityPrices(context);
 
             z++;
             LogMaker.LogToTable("Feralas", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");
