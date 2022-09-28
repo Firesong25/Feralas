@@ -115,6 +115,9 @@ public class DbUpdater
         if (auctionsToUpdate.Count > 0)
         {
             context.WowAuctions.UpdateRange(auctionsToUpdate);
+            ReportMargins reporter = new();
+            auctionsToAdd.AddRange(auctionsToUpdate);
+            Task backgroundReporter = reporter.GetMarginReportsForScan(context, auctionsToAdd, tag);
         }
 
         // all work done now store the results
@@ -131,29 +134,8 @@ public class DbUpdater
             if (ur.WowNamespace.Contains("-eu"))
                 idTag = $"{ur.Name} EU";
             response = $"{auctionsToAdd.Count} added. {auctionsToUpdate.Count} updated. {absentListings.Count} deleted. {ancientListings.Count} purged. {auctionCount} live auctions";
-
             ur.ScanReport = response;
             ur.LastScanTime = DateTime.UtcNow;
-        }
-
-        ReportMargins reporter = new();
-        auctionsToAdd.AddRange(auctionsToUpdate);
-
-        if (realm.ConnectedRealmId.Equals(12345))
-        {
-            CachedData.UsCommodities = auctionsToAdd;
-            Task background = reporter.PopulateUsCommodityPrices(context);
-            
-        }
-        else if (realm.ConnectedRealmId.Equals(54321))
-        {
-            CachedData.EuCommodities = auctionsToAdd;
-            Task background = reporter.PopulateEuCommodityPrices(context);
-        }
-        else
-        {
-            Task backgroundReporter = reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
-            //await reporter.GetMarginReportsForRealm(context, auctionsToAdd, tag);
         }
 
         if (updatedRealms.Count > 0)

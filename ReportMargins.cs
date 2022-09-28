@@ -45,20 +45,23 @@ internal class ReportMargins
          
     }
 
-    public async Task GetMarginReportForCommodities(PostgresContext context, string zone)
+    public async Task GetMarginReportForCommodities(PostgresContext context, string tag)
     {
         List<MarginReport> reports = new();
         Stopwatch sw = Stopwatch.StartNew();
+        int connectedRealmId = 0;
         foreach (CraftedItem item in CachedData.CommodityItems)
         {
             MarginReport mr = new();
-            if (zone.Equals("eu"))
+            if (tag.Contains("EU"))
             {
-                mr = await GetMargin(item, CachedData.EuCommodities, zone);
+                connectedRealmId = 54321;
+                mr = await GetMargin(item, CachedData.EuCommodities, tag);
             }
             else
             {
-                mr = await GetMargin(item, CachedData.UsCommodities, zone);
+                connectedRealmId = 12345;
+                mr = await GetMargin(item, CachedData.UsCommodities, tag);
             }
 
             if (mr.Volume48Hours > 0)
@@ -66,15 +69,17 @@ internal class ReportMargins
                 reports.Add(mr);
             }
         }
+        context.MarginReports.RemoveRange(context.MarginReports.Where(l => l.ConnectedRealmId.Equals(connectedRealmId)));
         context.MarginReports.AddRange(reports);
 
-        LogMaker.LogToTable($"ReportMargins.cs", $"{reports.Count} {zone} commodity margin reports took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        LogMaker.LogToTable($"{tag}", $"{reports.Count} {tag} commodity margin reports took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
         await context.SaveChangesAsync();
     }
-    public async Task GetMarginReportsForRealm(PostgresContext context, List<WowAuction> auctions, string tag)
+    public async Task GetMarginReportsForScan(PostgresContext context, List<WowAuction> auctions, string tag)
     {
         if (auctions.FirstOrDefault().ConnectedRealmId.Equals(12345) || auctions.FirstOrDefault().ConnectedRealmId.Equals(54321))
         {
+            await GetMarginReportForCommodities(context, tag);
             return;
         }
         WowRealm realm = CachedData.Realms.FirstOrDefault(l => l.ConnectedRealmId.Equals(auctions.FirstOrDefault().ConnectedRealmId));
@@ -97,12 +102,13 @@ internal class ReportMargins
         }
         string json = JsonConvert.SerializeObject(reports, Formatting.Indented);
         File.WriteAllText("margin_report.json", json);
+        context.MarginReports.RemoveRange(context.MarginReports.Where(l => l.ConnectedRealmId.Equals(auctions.FirstOrDefault().ConnectedRealmId)));
         context.MarginReports.AddRange(reports);
 
         LogMaker.LogToTable($"{tag}", $"{reports.Count} margin reports for {tag} took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
         await context.SaveChangesAsync();
     }
-    public async Task<MarginReport> GetMargin(CraftedItem item, List<WowAuction> auctions, string zone)
+    public async Task<MarginReport> GetMargin(CraftedItem item, List<WowAuction> auctions, string tag)
     {
         int totalListings = 0;
         foreach (WowAuction auction in auctions.Where(l => l.ItemId == item.Id))
@@ -128,11 +134,11 @@ internal class ReportMargins
             {
                 totalCost += CachedData.VendorItemCosts[pair.Key] * pair.Value;
             }
-            else if (zone.Equals("eu") && CachedData.EuCommodityPrices.ContainsKey(pair.Key))
+            else if (tag.Contains("EU") && CachedData.EuCommodityPrices.ContainsKey(pair.Key))
             {
                 totalCost += CachedData.EuCommodityPrices[pair.Key] * pair.Value;
             }
-            else if (zone.Equals("us") && CachedData.UsCommodityPrices.ContainsKey(pair.Key))
+            else if (tag.Contains("US") && CachedData.UsCommodityPrices.ContainsKey(pair.Key))
             {
                 totalCost += CachedData.UsCommodityPrices[pair.Key] * pair.Value;
             }
