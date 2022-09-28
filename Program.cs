@@ -25,7 +25,7 @@ internal class Program
         TimeSpan pollingInterval = new(0, 0, 15);
         int z = 0;
 
-        
+
         List<WowRealm> activeRealms = await CreateActiveRealmList();
 
         // Test area
@@ -39,7 +39,7 @@ internal class Program
         LogMaker.LogToTable($"Feralas", $"Initialisation took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
 
         LogMaker.LogToTable("Feralas", $"<em>Auctions scans for {activeRealms.Count} realms starting.</em>");
-        
+
 
         while (true)
         {
@@ -55,16 +55,17 @@ internal class Program
                 }
             }
 
+            Task runBackground;
 
             foreach (WowRealm realm in activeRealms)
             {
                 RealmRunner realmRunner = new(realm);
-                realmRunner.Run();
+                runBackground = realmRunner.Run();
                 await Task.Delay(pollingInterval);
             }
 
-            reporter.PopulateEuCommodityPrices(context);
-            reporter.PopulateUsCommodityPrices(context);
+            runBackground = reporter.PopulateEuCommodityPrices(context);
+            runBackground = reporter.PopulateUsCommodityPrices(context);
 
             z++;
             LogMaker.LogToTable("Feralas", $"<em>Auctions scan {z} complete in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.</em>");
