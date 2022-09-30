@@ -6,7 +6,7 @@ public static class Configurations
     public static string BlizzardClientId { get; private set; }
     public static string BlizzardClientPassword { get; private set; }
 
-    public static string DigitalOceanConnectionString { get; private set; }
+    public static string SouthfuryRiverConnectionString { get; private set; }
 
     public static string OVHConnectionString { get; private set; }
     public static string CosmosConnectionString { get; private set; }
@@ -16,7 +16,7 @@ public static class Configurations
         string[] paths = { Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Data", "Configurations.txt" };
         string configurationFile = Path.Combine(paths);
 
-        DigitalOceanConnectionString = string.Empty;
+        SouthfuryRiverConnectionString = string.Empty;
         OVHConnectionString = string.Empty;
 
         string serverName = "cleardragon.com";
@@ -25,9 +25,9 @@ public static class Configurations
         string[] configs = File.ReadAllLines(configurationFile);
         foreach (string config in configs)
         {
-            if (DigitalOceanConnectionString == string.Empty && config.Contains(serverName))
+            if (SouthfuryRiverConnectionString == string.Empty && config.Contains(serverName))
             {
-                DigitalOceanConnectionString = config;
+                SouthfuryRiverConnectionString = config;
             }
 
             if (OVHConnectionString == string.Empty && config.Contains(ovhServerName))
