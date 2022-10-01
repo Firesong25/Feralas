@@ -58,7 +58,11 @@ public class DbUpdater
         DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
         DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7, 0, 0, 0);
 
-        storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.Sold == false && l.FirstSeenTime > cutOffTime).ToList();
+        // October 1 - increasing list size to include sold items for margin reports to be accurate.
+        storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime > cutOffTime).ToList();
+        // use this to add the sold listings to the margin report calcuations.
+        List<WowAuction> reportables = storedAuctions.Where(l => l.Sold.Equals(true)).ToList();
+
 
         ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
         if (ancientListings.Count > 0)
@@ -79,9 +83,12 @@ public class DbUpdater
         if (auctionsToAdd.Count > 0)
         {
             context.WowAuctions.AddRange(auctionsToAdd);
-        }            
+        }
 
-        absentListings = storedAuctions.Except(incoming).ToList();
+        
+
+        // October 1 - exclude the extra sold listings
+        absentListings = storedAuctions.Where(l => l.Sold.Equals(false)).Except(incoming).ToList();
 
         foreach (WowAuction auction in absentListings)
         {
@@ -95,6 +102,9 @@ public class DbUpdater
         {
             soldListings.ForEach(l => l.Sold = true);
             context.WowAuctions.UpdateRange(soldListings);
+            reportables.AddRange(soldListings);
+            ReportMargins reporter = new();
+            Task backgroundReporter = reporter.GetMarginReportsForScan(context, reportables, tag);
         }
 
         unsoldListings = absentListings.Except(soldListings).ToList();
@@ -103,7 +113,8 @@ public class DbUpdater
             context.WowAuctions.RemoveRange(unsoldListings);
         }
 
-        auctionsToUpdate = storedAuctions.Intersect(incoming).Except(soldListings).ToList();
+        // October 1 - the except must go before the intersect for performance
+        auctionsToUpdate = storedAuctions.Except(soldListings).Intersect(incoming).ToList();
 
         Parallel.ForEach(auctionsToUpdate, auction => 
         {
@@ -112,12 +123,11 @@ public class DbUpdater
             auction.TimeLeft = incoming.FirstOrDefault(l => l.Equals(auction)).TimeLeft;
         });
 
+        
+
         if (auctionsToUpdate.Count > 0)
         {
-            context.WowAuctions.UpdateRange(auctionsToUpdate);
-            ReportMargins reporter = new();
-            auctionsToAdd.AddRange(auctionsToUpdate);
-            Task backgroundReporter = reporter.GetMarginReportsForScan(context, auctionsToAdd, tag);
+            context.WowAuctions.UpdateRange(auctionsToUpdate); 
         }
 
         // all work done now store the results
