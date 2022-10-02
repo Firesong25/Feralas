@@ -22,7 +22,7 @@ internal class Program
         await reporter.PopulateEuCommodityPrices(context);
         await reporter.PopulateUsCommodityPrices(context);
 
-        TimeSpan pollingInterval = new(0, 0, 20);
+        TimeSpan pollingInterval = new(0, 0, 15);
         int z = 0;
 
 
