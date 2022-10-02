@@ -104,7 +104,7 @@ public class DbUpdater
             context.WowAuctions.UpdateRange(soldListings);
             reportables.AddRange(soldListings);
             ReportMargins reporter = new();
-            Task backgroundReporter = reporter.GetMarginReportsForScan(context, reportables, tag);
+            await reporter.GetMarginReportsForScan(context, reportables, tag);
         }
 
         unsoldListings = absentListings.Except(soldListings).ToList();
