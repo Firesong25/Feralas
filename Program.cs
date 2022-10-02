@@ -58,17 +58,25 @@ internal class Program
             foreach (WowRealm realm in activeRealms)
             {
                 RealmRunner realmRunner = new(realm);
-                if (realm.Name.ToLower().Contains("commodities"))
+                try
                 {
-                    await realmRunner.Run();
-                    await Task.Delay(pollingInterval);
+                    if (realm.Name.ToLower().Contains("commodities"))
+                    {
+                        await realmRunner.Run();
+                        await Task.Delay(pollingInterval);
+                    }
+                    else
+                    {
+                        _ = realmRunner.Run();
+                        await Task.Delay(pollingInterval);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    _ = realmRunner.Run();
-                    await Task.Delay(pollingInterval);
+                    LogMaker.LogToTable($"{realm.Name}", $"{ex.Message}");
+                    LogMaker.LogToTable($"{realm.Name}", $"{ex.StackTrace}");  
                 }
-     
+
             }
 
             await reporter.PopulateEuCommodityPrices(context);
