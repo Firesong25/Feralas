@@ -143,7 +143,7 @@ public class DbUpdater
             string idTag = $"{ur.Name} US";
             if (ur.WowNamespace.Contains("-eu"))
                 idTag = $"{ur.Name} EU";
-            response = $"{auctionsToAdd.Count} added. {auctionsToUpdate.Count} updated. {absentListings.Count} deleted. {ancientListings.Count} purged. {auctionCount} live auctions";
+            response = $"{auctionsToAdd.Count} new listings added. {auctionsToUpdate.Count} updated. {absentListings.Count} expired listings deleted. {ancientListings.Count} sold auctions over 7 days old purged. {auctionCount} live auctions";
             ur.ScanReport = response;
             ur.LastScanTime = DateTime.UtcNow;
         }

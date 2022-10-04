@@ -74,7 +74,15 @@ internal class ReportMargins
 #if DEBUG
         LogMaker.LogToTable($"{tag}", $"{reports.Count} {tag} commodity margin reports took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
 #endif
-        await context.SaveChangesAsync();
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+
+            LogMaker.LogToTable($"{tag}", $"ReportMargin.cs line 84: {ex.Message}");
+        }
     }
     public async Task GetMarginReportsForScan(PostgresContext context, List<WowAuction> auctions, string tag)
     {
