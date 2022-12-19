@@ -14,6 +14,17 @@ internal class Program
 
         await Configurations.Init();
         PostgresContext context = new PostgresContext();
+
+        // Test area
+        //WowRealm cus = new();
+        //cus.Name = "Commodities-US";
+        //cus.WowNamespace = "dynamic-us";
+        
+        //RealmRunner testy = new(cus);
+        //await testy.Run();
+
+        //  LogMaker.LogToTable($"Program.cs", $"Delete This");
+
         await CachedData.Init(context);
         ReportMargins reporter = new();
         Stopwatch sw = Stopwatch.StartNew();
@@ -27,14 +38,6 @@ internal class Program
 
 
         List<WowRealm> activeRealms = await CreateActiveRealmList();
-
-        // Test area
-
-        //  LogMaker.LogToTable($"Program.cs", $"Delete This");
-
-
-
-        //DELETE UNTIL THIS
 
         LogMaker.LogToTable($"Feralas", $"Initialisation took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
 
@@ -67,8 +70,9 @@ internal class Program
                     }
                     else
                     {
-                        _ = realmRunner.Run();
-                        await Task.Delay(pollingInterval);
+                        //await realmRunner.Run(); // this is for debugging only
+                        // _ = realmRunner.Run();
+                        //await Task.Delay(pollingInterval);
                     }
                 }
                 catch (Exception ex)

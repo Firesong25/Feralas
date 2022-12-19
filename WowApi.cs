@@ -42,22 +42,32 @@ public static class WowApi
 
         if (realm.Name.ToLower().Contains("commodities") && realm.WowNamespace.Contains("-us"))
         {
-            url = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-us&access_token={AccessToken}";
+            url = $"https://us.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-us&locale=en_US&access_token={AccessToken}";
         }
 
         if (realm.Name.ToLower().Contains("commodities") && realm.WowNamespace.Contains("-eu"))
         {
-            url = $"https://eu.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-eu&access_token={AccessToken}";
+            url = $"https://eu.api.blizzard.com/data/wow/auctions/commodities?namespace=dynamic-eu&locale=en_US&access_token={AccessToken}";
         }
 
         Stopwatch sw = Stopwatch.StartNew();
         try
         {
             HttpClient client = new HttpClient();
-            client.Timeout = TimeSpan.FromMinutes(1);
+            client.Timeout = TimeSpan.FromMinutes(2);
+            if (realm.Name.ToLower().Contains("commodities"))
+            {
+                client.Timeout = TimeSpan.FromMinutes(5);
+#if DEBUG
+                LogMaker.LogToTable($"{realm.Name}", $"Trying {realm.Name} in {realm.WowNamespace}.");
+#endif
+            }
             HttpResponseMessage response = await client.GetAsync(url);
             HttpContent content = response.Content;
             auctionsJson = await content.ReadAsStringAsync();
+#if DEBUG
+            LogMaker.LogToTable($"{realm.Name}", $"First try for {realm.Name} in {realm.WowNamespace} took {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+#endif
 
         }
         catch
@@ -78,7 +88,10 @@ public static class WowApi
                 hch.Proxy = null;
                 hch.UseProxy = false;
                 HttpClient client = new HttpClient(hch);
-                client.Timeout = TimeSpan.FromMinutes(1);
+                if (realm.Name.ToLower().Contains("commodities"))
+                {
+                    client.Timeout = TimeSpan.FromMinutes(5);
+                }
                 HttpResponseMessage response = await client.GetAsync(url);
                 HttpContent content = response.Content;
                 auctionsJson = await content.ReadAsStringAsync();
@@ -102,7 +115,10 @@ public static class WowApi
                 hch.Proxy = null;
                 hch.UseProxy = false;
                 HttpClient client = new HttpClient(hch);
-                client.Timeout = TimeSpan.FromMinutes(1);
+                if (realm.Name.ToLower().Contains("commodities"))
+                {
+                    client.Timeout = TimeSpan.FromMinutes(5);
+                }
                 HttpResponseMessage response = await client.GetAsync(url);
                 HttpContent content = response.Content;
                 auctionsJson = await content.ReadAsStringAsync();

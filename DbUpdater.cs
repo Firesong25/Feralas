@@ -41,6 +41,9 @@ public class DbUpdater
 
     public async Task<string> DbAuctionsUpdaterAsync(WowRealm realm, Listings auctions, string tag)
     {
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Starting database update for {realm.Name} in {realm.WowNamespace}.");
+#endif
         PostgresContext context = new();
         string response = string.Empty;
         Stopwatch sw = Stopwatch.StartNew();
@@ -60,15 +63,33 @@ public class DbUpdater
 
         // October 1 - increasing list size to include sold items for margin reports to be accurate.
         storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime > cutOffTime).ToList();
+
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Got storedAuctions in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+
+#endif
         // use this to add the sold listings to the margin report calcuations.
         List<WowAuction> reportables = storedAuctions.Where(l => l.Sold.Equals(true)).ToList();
 
 
         ancientListings = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime < ancientDeleteTime).ToList();
+
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Got ancientListings in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+
+#endif
         if (ancientListings.Count > 0)
         {
             context.WowAuctions.RemoveRange(ancientListings);
+            context.SaveChanges();
         }
+
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Deleted ancientListings in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+#endif
 
         auctionsToAdd = incoming.Except(storedAuctions).ToList();
 
@@ -83,11 +104,14 @@ public class DbUpdater
         if (auctionsToAdd.Count > 0)
         {
             context.WowAuctions.AddRange(auctionsToAdd);
+            context.SaveChanges();
         }
 
-        
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Inserted auctionsToAdd in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+#endif
 
-        // October 1 - exclude the extra sold listings
         absentListings = storedAuctions.Where(l => l.Sold.Equals(false)).Except(incoming).ToList();
 
         foreach (WowAuction auction in absentListings)
@@ -102,18 +126,24 @@ public class DbUpdater
         {
             soldListings.ForEach(l => l.Sold = true);
             context.WowAuctions.UpdateRange(soldListings);
+            context.SaveChanges();
             reportables.AddRange(soldListings);
-            ReportMargins reporter = new();
-            await reporter.GetMarginReportsForScan(context, reportables, tag);
         }
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Updated soldListings in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+#endif
 
         unsoldListings = absentListings.Except(soldListings).ToList();
         if (unsoldListings.Count > 0)
         {
             context.WowAuctions.RemoveRange(unsoldListings);
+            context.SaveChanges();
         }
-
-        // October 1 - the except must go before the intersect for performance
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Deleted unsoldListings in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+#endif
         auctionsToUpdate = storedAuctions.Except(soldListings).Intersect(incoming).ToList();
 
         Parallel.ForEach(auctionsToUpdate, auction => 
@@ -121,14 +151,30 @@ public class DbUpdater
             auction.LastSeenTime = DateTime.UtcNow;
             auction.LastSeenTime = DateTime.SpecifyKind(auction.LastSeenTime, DateTimeKind.Utc);
             auction.TimeLeft = incoming.FirstOrDefault(l => l.Equals(auction)).TimeLeft;
-        });
-
-        
+        });        
 
         if (auctionsToUpdate.Count > 0)
         {
-            context.WowAuctions.UpdateRange(auctionsToUpdate); 
+            context.WowAuctions.UpdateRange(auctionsToUpdate);
+            context.SaveChanges();
         }
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Updated auctionsToUpdate in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+#endif
+
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Completed listings database for {realm.Name} in {realm.WowNamespace}.");
+
+#endif
+
+        ReportMargins reporter = new();
+        await reporter.GetMarginReportsForScan(context, reportables, tag);
+
+#if DEBUG
+        LogMaker.LogToTable($"{realm.Name}", $"Margin reports done for {realm.Name} in {realm.WowNamespace} in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");
+        sw.Restart();
+#endif
 
         // all work done now store the results
         List<WowRealm> updatedRealms = context.WowRealms.Where(l => l.ConnectedRealmId.Equals(realm.ConnectedRealmId)).ToList();
@@ -148,19 +194,27 @@ public class DbUpdater
             ur.LastScanTime = DateTime.UtcNow;
         }
 
-        if (updatedRealms.Count > 0)
+        if (auctionsToAdd.Count > 0 || updatedRealms.Count > 0)
         {
             context.WowRealms.UpdateRange(updatedRealms);
             sw.Restart();
             try
             {
-                Task background = context.SaveChangesAsync();
+                context.SaveChanges();
+#if DEBUG
+                LogMaker.LogToTable($"{realm.Name}", $"Completed margins and listings database update for {realm.Name} in {realm.WowNamespace}.");
+#endif
+
+                //Task background = context.SaveChangesAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 response = $"<b>Error when saving data for {tag}</b>";
+#if DEBUG
+                LogMaker.LogToTable($"{realm.Name}", $"{ex.Message}.");
+#endif
             }
-            
+
         }
 
         return response;
