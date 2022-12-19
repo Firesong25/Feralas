@@ -168,8 +168,12 @@ public class DbUpdater
 
 #endif
 
-        ReportMargins reporter = new();
-        await reporter.GetMarginReportsForScan(context, reportables, tag);
+        if (reportables.Count > 0)
+        {
+            ReportMargins reporter = new();
+            await reporter.GetMarginReportsForScan(context, reportables, tag);
+        }
+
 
 #if DEBUG
         LogMaker.LogToTable($"{realm.Name}", $"Margin reports done for {realm.Name} in {realm.WowNamespace} in {RealmRunner.GetReadableTimeByMs(sw.ElapsedMilliseconds)}.");

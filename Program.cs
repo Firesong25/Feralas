@@ -70,9 +70,9 @@ internal class Program
                     }
                     else
                     {
-                        //await realmRunner.Run(); // this is for debugging only
+                        await realmRunner.Run(); // this is for debugging only
                         // _ = realmRunner.Run();
-                        //await Task.Delay(pollingInterval);
+                        await Task.Delay(pollingInterval);
                     }
                 }
                 catch (Exception ex)

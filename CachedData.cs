@@ -20,6 +20,20 @@ public static class CachedData
 
     public static readonly Dictionary<int, int> VendorItemCosts = new Dictionary<int, int>()
             {
+        // Dragonflight
+                {190452, 150000 },
+                {194784, 10000 },
+                {198487, 10000 },
+                {192833, 20000 },
+                {191474, 50000 },
+                {200860, 50000 },
+                {38682, 1000 },
+                {197749, 1000 },
+                {197750, 3000 },
+                {197751, 5000 },
+                {197752, 12500 },
+                {197753, 30000 },
+          // Older mats
                 {180733, 90000},
                 {178787, 1250000},
                 {20815, 800},
@@ -71,7 +85,7 @@ public static class CachedData
 
         if (EuCommodities.Count.Equals(0))
         {
-            EuCommodities = context.WowAuctions.Where(l => l.ConnectedRealmId.Equals(54321) && 
+            EuCommodities = context.WowAuctions.Where(l => l.ConnectedRealmId.Equals(54321) &&
                 l.Sold.Equals(false) &&
                 l.FirstSeenTime > cutOffTime).ToList();
         }

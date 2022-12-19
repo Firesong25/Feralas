@@ -9,7 +9,6 @@ internal class ReportMargins
 
     public async Task PopulateEuCommodityPrices(PostgresContext context)
     {
-        await Task.Delay(1);
         Dictionary<int, long> tmp = new();
         foreach (WowAuction auction in CachedData.EuCommodities)
         {
