@@ -16,12 +16,7 @@ internal class Program
         PostgresContext context = new PostgresContext();
 
         // Test area
-        //WowRealm cus = new();
-        //cus.Name = "Commodities-US";
-        //cus.WowNamespace = "dynamic-us";
-        
-        //RealmRunner testy = new(cus);
-        //await testy.Run();
+
 
         //  LogMaker.LogToTable($"Program.cs", $"Delete This");
 
@@ -70,8 +65,8 @@ internal class Program
                     }
                     else
                     {
-                        await realmRunner.Run(); // this is for debugging only
-                        // _ = realmRunner.Run();
+                        // this is for debugging only - await realmRunner.Run(); 
+                        _ = realmRunner.Run();
                         await Task.Delay(pollingInterval);
                     }
                 }

@@ -48,7 +48,6 @@ public class DbUpdater
         string response = string.Empty;
         Stopwatch sw = Stopwatch.StartNew();
 
-        await Task.Delay(1);
         List<WowAuction> incoming = auctions.LiveAuctions;
         List<WowAuction> storedAuctions = new();
         List<WowAuction> soldListings = new();
@@ -61,7 +60,6 @@ public class DbUpdater
         DateTime cutOffTime = DateTime.UtcNow - new TimeSpan(50, 50, 50);
         DateTime ancientDeleteTime = DateTime.UtcNow - new TimeSpan(7, 0, 0, 0);
 
-        // October 1 - increasing list size to include sold items for margin reports to be accurate.
         storedAuctions = context.WowAuctions.Where(l => l.ConnectedRealmId == realm.ConnectedRealmId && l.FirstSeenTime > cutOffTime).ToList();
 
 #if DEBUG
@@ -171,7 +169,7 @@ public class DbUpdater
         if (reportables.Count > 0)
         {
             ReportMargins reporter = new();
-            await reporter.GetMarginReportsForScan(context, reportables, tag);
+            _ = reporter.GetMarginReportsForScan(context, reportables, tag);
         }
 
 
@@ -221,6 +219,7 @@ public class DbUpdater
 
         }
 
+        await Task.Delay(1);
         return response;
     }
 }
